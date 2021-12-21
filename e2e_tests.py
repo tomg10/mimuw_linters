@@ -1,10 +1,8 @@
-import json
 import unittest
 
 from fastapi.testclient import TestClient
 
 import deploy_utils
-import health_utils
 import linter_api
 import machine_manager_api
 from linter import linter_app

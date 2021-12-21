@@ -10,6 +10,7 @@ def is_healthy(url):
     except:
         return False
 
+
 def wait_for_healthy_state(url):
     for i in range(50):
         if is_healthy(url):

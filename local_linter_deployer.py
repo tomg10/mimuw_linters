@@ -1,7 +1,3 @@
-import os
-import random
-import subprocess
-import time
 import uuid
 
 import deploy_utils
@@ -9,9 +5,11 @@ from schema import ExistingInstance
 
 machines = {}
 
+
 def kill_linter_instance(instance_id):
     print(f"killing instance {instance_id}")
     machines.pop(instance_id).kill()
+
 
 def deploy_linter_instance(linter_version, instance_id = None):
     if instance_id is None:

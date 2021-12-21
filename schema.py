@@ -17,11 +17,9 @@ class LinterResponse:
     result: str
     errors: List[str]
 
+
 @dataclass_json
 @dataclass
 class ExistingInstance:
     instance_id: str
     address: str
-
-
-

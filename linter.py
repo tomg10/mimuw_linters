@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-from typing import Optional, List
-
 from fastapi import FastAPI
 
 from schema import LinterRequest, LinterResponse
@@ -16,5 +13,6 @@ def health_check() -> str:
 @linter_app.post("/validate")
 def validate_file(request: LinterRequest) -> LinterResponse:
     return LinterResponse(result="ok", errors=[])
+
 
 print("started linter instance!")

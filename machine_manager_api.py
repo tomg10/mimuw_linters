@@ -10,6 +10,7 @@ def get_machines(url):
     print(result_raw)
     return [ExistingInstance.from_json(json.dumps(elem)) for elem in result_raw]
 
+
 def deploy_linter_instance(url, linter_version, instance_id):
     full_url = f"{url}/deploy-linter-version?linter_version={linter_version}"
     if instance_id:
