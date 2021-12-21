@@ -1,1 +1,4 @@
 requests
+uvicorn
+fastapi
+dataclasses_json

@@ -28,6 +28,6 @@ class E2eTests(unittest.TestCase):
         result = machine_manager_api.get_machines(machine_manager_url)
         self.assertEqual(10, len(result))
         for linter_instance in result:
-            response: LinterResponse = LinterResponse.from_json(
+            response: LinterResponse = LinterResponse.from_dict(
                 linter_api.validate(linter_instance.address, LinterRequest(language="python", code="x=5")))
             self.assertEqual("ok", response.result)
