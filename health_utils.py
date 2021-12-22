@@ -6,7 +6,7 @@ import requests
 def is_healthy(url):
     try:
         result = requests.get(url + "/").json()
-        return result == "ok"
+        return result.split()[0] == "ok"
     except:
         return False
 

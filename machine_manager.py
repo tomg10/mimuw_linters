@@ -12,7 +12,7 @@ machines = {}
 
 @machine_manager_app.get("/")
 def get_health():
-    return "ok"
+    return "ok manager"
 
 
 @machine_manager_app.get("/machines")
