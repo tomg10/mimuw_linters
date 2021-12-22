@@ -17,7 +17,6 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     global usage
 
     usage += 1
-    print(f"Usage: {usage}")
     return LinterResponse(result="ok", errors=[])
 
 

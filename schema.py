@@ -23,3 +23,4 @@ class LinterResponse:
 class ExistingInstance:
     instance_id: str
     address: str
+    version: str

@@ -16,3 +16,7 @@ def deploy_linter_instance(url, linter_version, instance_id):
     if instance_id:
         full_url += f"&instance_id={instance_id}"
     return requests.post(full_url).json()
+
+
+def kill_linter_instance(url, instance_id):
+    return requests.post(f"{url}/kill-linter?instance_id={instance_id}").json()
