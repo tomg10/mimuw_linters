@@ -14,7 +14,7 @@ pip install -r requirements.txt
 ## Running
 
 To run application locally just run script: `run_local.sh`
-It starts a `uvicorn` application on a localhost with a random port.
+It starts a `uvicorn` application on a localhost with port 5000.
 
 ## Testing
 
