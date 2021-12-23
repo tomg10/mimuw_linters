@@ -22,12 +22,6 @@ class E2eTests(unittest.TestCase):
     def unset_linter_debug_mode():
         os.environ.pop("LINTER_DEBUG")
 
-    def stop_machine_manager(self):
-        deploy_utils.stop_fast_api_app(self.machine_manager_process)
-
-    def stop_load_balancer(self):
-        deploy_utils.stop_fast_api_app(self.load_balancer_process)
-
     def setUp(self) -> None:
         E2eTests.set_linter_debug_mode()
 
@@ -40,8 +34,8 @@ class E2eTests(unittest.TestCase):
         for linter in linters:
             machine_manager_api.kill_linter_instance(self.machine_manager_url, linter.instance_id)
 
-        self.stop_load_balancer()
-        self.stop_machine_manager()
+        deploy_utils.stop_fast_api_app(self.load_balancer_process)
+        deploy_utils.stop_fast_api_app(self.machine_manager_process)
 
         E2eTests.unset_linter_debug_mode()
 
