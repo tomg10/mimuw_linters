@@ -21,10 +21,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
 
     debug = []
     if get_env_or_raise("LINTER_DEBUG"):
-        print("YES")
         debug = [f"Current usage: {usage}"]
-    print(get_env_or_raise("LINTER_DEBUG"))
-
 
     return LinterResponse(result="ok", errors=[], debug=debug)
 
