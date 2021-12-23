@@ -5,7 +5,7 @@ from schema import LinterRequest, LinterResponse
 
 linter_app = FastAPI()
 
-usage = 0
+responses_count = 0
 
 
 @linter_app.get("/")
@@ -15,13 +15,13 @@ def health_check() -> str:
 
 @linter_app.post("/validate")
 def validate_file(request: LinterRequest) -> LinterResponse:
-    global usage
+    global responses_count
 
-    usage += 1
+    responses_count += 1
 
     debug = []
     if get_env_or_raise("LINTER_DEBUG"):
-        debug = [f"Current usage: {usage}"]
+        debug = [f"Current responses_count: {responses_count}"]
 
     return LinterResponse(result="ok", errors=[], debug=debug)
 
