@@ -33,7 +33,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         machine_number = 0
 
     if len(machines) == 0:
-        return LinterResponse(result="fail", errors=["No linter machine available"])
+        return LinterResponse(result="fail", errors=["No linter machine available"], debug=[])
 
     machine_number += 1
     return linter_api.validate(machines[machine_number - 1].address, request)

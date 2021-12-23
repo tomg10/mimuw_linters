@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from services_addresses import get_env_or_raise
 from schema import LinterRequest, LinterResponse
 
 linter_app = FastAPI()
@@ -17,12 +18,15 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     global usage
 
     usage += 1
-    return LinterResponse(result="ok", errors=[])
+
+    debug = []
+    if get_env_or_raise("LINTER_DEBUG"):
+        print("YES")
+        debug = [f"Current usage: {usage}"]
+    print(get_env_or_raise("LINTER_DEBUG"))
 
 
-@linter_app.get("/private/usage")
-def get_usage() -> int:
-    return usage
+    return LinterResponse(result="ok", errors=[], debug=debug)
 
 
 print("started linter instance!")

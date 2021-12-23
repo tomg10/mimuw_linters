@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from fastapi.testclient import TestClient
 
@@ -13,6 +14,14 @@ linter_client = TestClient(linter_app)
 
 
 class E2eTests(unittest.TestCase):
+    @staticmethod
+    def set_linter_debug_mode():
+        os.environ["LINTER_DEBUG"] = "true"
+
+    @staticmethod
+    def unset_linter_debug_mode():
+        os.environ.pop("LINTER_DEBUG")
+
     def stop_machine_manager(self):
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
 
@@ -20,6 +29,8 @@ class E2eTests(unittest.TestCase):
         deploy_utils.stop_fast_api_app(self.load_balancer_process)
 
     def setUp(self) -> None:
+        E2eTests.set_linter_debug_mode()
+
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
         load_balancer_api.set_machine_manager(self.load_balancer_url, self.machine_manager_url)
@@ -31,6 +42,8 @@ class E2eTests(unittest.TestCase):
 
         self.stop_load_balancer()
         self.stop_machine_manager()
+
+        E2eTests.unset_linter_debug_mode()
 
     def test_getting_linters(self):
         for i in range(10):
@@ -83,15 +96,11 @@ class E2eTests(unittest.TestCase):
     def test_load_balancer_equal_split(self):
         for i in range(10):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
-        result = machine_manager_api.get_machines(self.machine_manager_url)
 
         for i in range(100):
             response: LinterResponse = LinterResponse.from_dict(
                 load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x=5")))
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
-
-        for linter_instance in result:
-            response: int = linter_api.get_linter_usage(linter_instance.address)
-            self.assertEqual(10, response)
+            self.assertEqual(f"Current usage: {i // 10 + 1}", response.debug[0])
 
