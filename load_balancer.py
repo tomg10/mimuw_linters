@@ -6,7 +6,7 @@ from schema import LinterResponse, LinterRequest
 
 load_balancer_app = FastAPI()
 
-machine_number = 0
+linter_number = 0
 machine_manager_url = ""
 
 
@@ -25,15 +25,15 @@ def set_machine_manager(machine_manager: str = "") -> None:
 
 @load_balancer_app.post("/validate")
 def validate_file(request: LinterRequest) -> LinterResponse:
-    global machine_number
+    global linter_number
 
-    machines = machine_manager_api.get_machines(machine_manager_url)
+    linters = machine_manager_api.get_linters(machine_manager_url)
 
-    if machine_number >= len(machines):
-        machine_number = 0
+    if linter_number >= len(linters):
+        linter_number = 0
 
-    if len(machines) == 0:
-        return LinterResponse(result="fail", errors=["No linter machine available"], debug=[])
+    if len(linters) == 0:
+        return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
 
-    machine_number += 1
-    return linter_api.validate(machines[machine_number - 1].address, request)
+    linter_number += 1
+    return linter_api.validate(linters[linter_number - 1].address, request)
