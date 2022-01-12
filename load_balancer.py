@@ -1,10 +1,13 @@
 from fastapi import FastAPI
+from multiprocessing import Lock
 
 import linter_api
 import machine_manager_api
 from schema import LinterResponse, LinterRequest
 
+
 load_balancer_app = FastAPI()
+lock = Lock()
 
 linter_number = 0
 machine_manager_url = ""
@@ -28,12 +31,17 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     global linter_number
 
     linters = machine_manager_api.get_linters(machine_manager_url)
-
-    if linter_number >= len(linters):
-        linter_number = 0
-
     if len(linters) == 0:
         return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
 
-    linter_number += 1
+    try:
+        lock.acquire()
+
+        if linter_number >= len(linters):
+            linter_number = 0
+
+        linter_number += 1
+    finally:
+        lock.release()
+
     return linter_api.validate(linters[linter_number - 1].address, request)
