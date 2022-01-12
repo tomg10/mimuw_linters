@@ -36,14 +36,16 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     if len(linters) == 0:
         return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
 
+    local_linter_number = 0
     try:
         lock.acquire()
 
         if linter_number >= len(linters):
             linter_number = 0
 
+        local_linter_number = linter_number
         linter_number += 1
     finally:
         lock.release()
 
-    return linter_api.validate(linters[linter_number - 1].address, request)
+    return linter_api.validate(linters[local_linter_number].address, request)
