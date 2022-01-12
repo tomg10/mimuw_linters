@@ -31,6 +31,8 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     global linter_number
 
     linters = machine_manager_api.get_linters(machine_manager_url)
+    linters.sort(key=lambda linter: linter.instance_id)
+
     if len(linters) == 0:
         return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
 
