@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 import deploy_utils
 import linter_api
+import update_manager_api
 import load_balancer_api
 import machine_manager_api
 from linter import linter_app
@@ -25,8 +26,9 @@ class E2eTests(unittest.TestCase):
     def setUp(self) -> None:
         E2eTests.set_linter_debug_mode()
 
-        self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
+        self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
+        self.update_manager_process, self.update_manager_url = deploy_utils.start_fast_api_app("update_manager")
         load_balancer_api.set_machine_manager(self.load_balancer_url, self.machine_manager_url)
 
     def tearDown(self) -> None:
@@ -36,6 +38,7 @@ class E2eTests(unittest.TestCase):
 
         deploy_utils.stop_fast_api_app(self.load_balancer_process)
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
+        deploy_utils.stop_fast_api_app(self.update_manager_process)
 
         E2eTests.unset_linter_debug_mode()
 
@@ -99,3 +102,34 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(0, len(response.errors))
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
 
+    def single_manager_update(self, n, version, step, last_step=False):
+        response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, "2.0")
+        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        how_many_updated = len(list(filter(lambda machine: machine.version == "2.0", machines)))
+        update_status = update_manager_api.status(self.update_manager_url, "2.0")
+
+        if last_step:
+            self.assertEqual(response["status_code"], 400)
+            self.assertEqual(response["detail"], "Update already finished")
+        else:
+            self.assertEqual(response, "ok")
+
+        self.assertEqual(n * step, how_many_updated)
+        self.assertEqual(update_status, step)
+
+    def test_update_manager_single_update(self):
+        n = 10
+        version = "2.0"
+        steps = [0.1, 0.5, 1]
+
+        for i in range(n):
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+
+        for step in steps:
+            self.single_manager_update(n, version, step)
+
+        self.single_manager_update(n, version, steps[-1], True)
+
+
+if __name__ == "__main__":
+    unittest.main()
