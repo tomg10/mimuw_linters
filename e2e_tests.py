@@ -103,10 +103,10 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
 
     def single_manager_update(self, n, version, step, last_step=False):
-        response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, "2.0")
+        response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
         machines = machine_manager_api.get_machines(self.machine_manager_url)
-        how_many_updated = len(list(filter(lambda machine: machine.version == "2.0", machines)))
-        update_status = update_manager_api.status(self.update_manager_url, "2.0")
+        how_many_updated = len(list(filter(lambda machine: machine.version >= version, machines)))
+        update_status = update_manager_api.status(self.update_manager_url, version)
 
         if last_step:
             self.assertEqual(response["status_code"], 400)
@@ -129,6 +129,19 @@ class E2eTests(unittest.TestCase):
             self.single_manager_update(n, version, step)
 
         self.single_manager_update(n, version, steps[-1], True)
+
+    def test_update_manager_double_update(self):
+        n = 10
+        version1 = "2.0"
+        version2 = "3.0"
+        steps = [0.1, 0.5]
+
+        for i in range(n):
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+
+        for step in steps:
+            self.single_manager_update(n, version1, step)
+            self.single_manager_update(n, version2, step)
 
 
 if __name__ == "__main__":
