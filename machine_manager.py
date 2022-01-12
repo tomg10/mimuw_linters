@@ -34,6 +34,8 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
         linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
         linters[linter.instance_id] = linter
         return linter
+    except:
+        pass  # If we didn't create an instance, don't worry, maybe next time.
     finally:
         lock.release()
 
