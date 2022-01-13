@@ -38,7 +38,7 @@ def update(machine_manager_url: str, version: str):
 
         all_to_update = round(next_progress * machines_len)
         already_updated = len(newer_machines)
-        rest_to_update = all_to_update - already_updated
+        rest_to_update = max(0, all_to_update - already_updated)
 
         for machine in older_machines[:rest_to_update]:
             machine_manager_api.deploy_linter_instance(machine_manager_url, version, machine.instance_id)

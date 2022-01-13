@@ -26,8 +26,8 @@ class E2eTests(unittest.TestCase):
     def setUp(self) -> None:
         E2eTests.set_linter_debug_mode()
 
-        self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
+        self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
         self.update_manager_process, self.update_manager_url = deploy_utils.start_fast_api_app("update_manager")
         load_balancer_api.set_machine_manager(self.load_balancer_url, self.machine_manager_url)
 
@@ -36,9 +36,9 @@ class E2eTests(unittest.TestCase):
         for linter in linters:
             machine_manager_api.kill_linter_instance(self.machine_manager_url, linter.instance_id)
 
+        deploy_utils.stop_fast_api_app(self.update_manager_process)
         deploy_utils.stop_fast_api_app(self.load_balancer_process)
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
-        deploy_utils.stop_fast_api_app(self.update_manager_process)
 
         E2eTests.unset_linter_debug_mode()
 
@@ -114,7 +114,7 @@ class E2eTests(unittest.TestCase):
         else:
             self.assertEqual(response, "ok")
 
-        self.assertEqual(n * step, how_many_updated)
+        self.assertEqual(round(n * step), how_many_updated)
         self.assertEqual(update_status, step)
 
     def test_update_manager_single_update(self):
@@ -139,9 +139,11 @@ class E2eTests(unittest.TestCase):
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
 
-        for step in steps[:1]:
+        for step in steps[:2]:
             self.single_manager_update(n, version1, step)
             self.single_manager_update(n, version2, step)
+
+        self.single_manager_update(n, version1, steps[-1], True)
 
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
@@ -177,6 +179,7 @@ class E2eTests(unittest.TestCase):
         self.single_manager_update(n, version1, steps[1])
         self.single_manager_rollback("1.0")
 
+        #TODO update -> rollback -> update
 
 if __name__ == "__main__":
     unittest.main()
