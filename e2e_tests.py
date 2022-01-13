@@ -46,7 +46,6 @@ class E2eTests(unittest.TestCase):
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, version, instance_id)
 
-
     def test_getting_linters(self):
         self.create_linter_instances(10, "1.0")
         result = machine_manager_api.get_linters(self.machine_manager_url)
@@ -105,7 +104,7 @@ class E2eTests(unittest.TestCase):
 
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        machines = machine_manager_api.get_linters(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version >= version, machines)))
         update_status = update_manager_api.status(self.update_manager_url, version)
 
@@ -146,7 +145,7 @@ class E2eTests(unittest.TestCase):
 
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        machines = machine_manager_api.get_linters(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version > version, machines)))
         update_status = update_manager_api.status(self.update_manager_url, version)
 
@@ -155,7 +154,7 @@ class E2eTests(unittest.TestCase):
 
     def test_single_rollback(self):
         n = 10
-        v1 = "2.0"
+        v1 = "1.0"
         v2 = "2.0"
         steps = [0.1, 0.5, 1]
 
@@ -174,8 +173,8 @@ class E2eTests(unittest.TestCase):
         self.create_linter_instances(n, v1)
 
         self.single_manager_update(n, v2, steps[0])
-        self.single_manager_update(n, v2, steps[0])
-        self.single_manager_update(n, v3, steps[1])
+        self.single_manager_update(n, v2, steps[1])
+        self.single_manager_update(n, v3, steps[0])
         self.single_manager_rollback(v1)
 
 
