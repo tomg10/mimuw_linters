@@ -29,11 +29,16 @@ def validate_file(request: LinterRequest) -> LinterResponse:
 
     machines = machine_manager_api.get_machines(machine_manager_url)
 
-    if machine_number >= len(machines):
-        machine_number = 0
-
     if len(machines) == 0:
         return LinterResponse(result="fail", errors=["No linter machine available"], debug=[])
 
-    machine_number += 1
-    return linter_api.validate(machines[machine_number - 1].address, request)
+    for _ in range(3):
+        machine_number += 1
+        if machine_number >= len(machines):
+            machine_number = 0
+        try:
+            return linter_api.validate(machines[machine_number - 1].address, request)
+        except:
+            continue
+
+    return LinterResponse(result="fail", errors=["No linter machine available"], debug=[])
