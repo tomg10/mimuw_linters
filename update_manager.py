@@ -27,7 +27,7 @@ def update(machine_manager_url: str, version: str):
         if current_step == len(STEPS) - 1:
             return HTTPException(status_code=400, detail="Update already finished")
 
-        machines_list = machine_manager_api.get_machines(machine_manager_url)
+        machines_list = machine_manager_api.get_linters(machine_manager_url)
         # Random machines list to not make any assumption about list of machines, can be commented
         random.shuffle(machines_list)
         machines_len = len(machines_list)
@@ -56,7 +56,7 @@ def rollback(machine_manager_url: str, version: str):
     try:
         lock.acquire()
 
-        machines_list = machine_manager_api.get_machines(machine_manager_url)
+        machines_list = machine_manager_api.get_linters(machine_manager_url)
 
         # Random machines list to not make any assumption about list of machines, can be commented
         random.shuffle(machines_list)

@@ -104,7 +104,7 @@ class E2eTests(unittest.TestCase):
 
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        machines = machine_manager_api.get_linters(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version >= version, machines)))
         update_status = update_manager_api.status(self.update_manager_url, version)
 
@@ -145,7 +145,7 @@ class E2eTests(unittest.TestCase):
 
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        machines = machine_manager_api.get_linters(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version > version, machines)))
         update_status = update_manager_api.status(self.update_manager_url, version)
 
@@ -174,7 +174,7 @@ class E2eTests(unittest.TestCase):
 
         self.single_manager_update(n, version1, steps[0])
         self.single_manager_update(n, version2, steps[0])
-        self.single_manager_update(n, version2, steps[1])
+        self.single_manager_update(n, version1, steps[1])
         self.single_manager_rollback("1.0")
 
 

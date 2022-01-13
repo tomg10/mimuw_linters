@@ -5,8 +5,8 @@ import requests
 from schema import ExistingInstance
 
 
-def get_machines(url):
-    full_url = f"{url}/machines"
+def get_linters(url):
+    full_url = f"{url}/linters"
     result_raw = requests.get(full_url).json()
     return [ExistingInstance.from_json(json.dumps(elem)) for elem in result_raw]
 
