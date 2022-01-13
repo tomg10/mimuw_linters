@@ -66,7 +66,7 @@ class E2eTests(unittest.TestCase):
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
 
-        self.create_linter_instances(2, "2.0", linters[0].instance_id)
+        self.create_linter_instances(1, "2.0", linters[0].instance_id)
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(1, len(linters))
         self.assertEqual("2.0", linters[0].version)
@@ -173,8 +173,8 @@ class E2eTests(unittest.TestCase):
         self.create_linter_instances(n, v1)
 
         self.single_manager_update(n, v2, steps[0])
-        self.single_manager_update(n, v2, steps[1])
         self.single_manager_update(n, v3, steps[0])
+        self.single_manager_update(n, v2, steps[1])
         self.single_manager_rollback(v1)
 
 
