@@ -26,8 +26,8 @@ class E2eTests(unittest.TestCase):
     def setUp(self) -> None:
         E2eTests.set_linter_debug_mode()
 
-        self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
+        self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
         self.update_manager_process, self.update_manager_url = deploy_utils.start_fast_api_app("update_manager")
         load_balancer_api.set_machine_manager(self.load_balancer_url, self.machine_manager_url)
 
@@ -36,9 +36,9 @@ class E2eTests(unittest.TestCase):
         for linter in linters:
             machine_manager_api.kill_linter_instance(self.machine_manager_url, linter.instance_id)
 
+        deploy_utils.stop_fast_api_app(self.update_manager_process)
         deploy_utils.stop_fast_api_app(self.load_balancer_process)
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
-        deploy_utils.stop_fast_api_app(self.update_manager_process)
 
         E2eTests.unset_linter_debug_mode()
 
@@ -51,15 +51,43 @@ class E2eTests(unittest.TestCase):
         result = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(10, len(result))
 
+    def test_running_linter_binary_on_flawed_input(self):
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+
+        response: LinterResponse = LinterResponse.from_dict(
+            load_balancer_api.validate(self.load_balancer_url,
+                                       LinterRequest(language="python", code="x=5\nx =5\nx= 5")))
+        self.assertEqual("fail", response.result)
+        self.assertEqual(4, len(response.errors))
+
+    def test_running_linter_binary_on_flawless_input(self):
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+
+        response: LinterResponse = LinterResponse.from_dict(
+            load_balancer_api.validate(self.load_balancer_url,
+                                       LinterRequest(language="python", code="x = 5")))
+        self.assertEqual("ok", response.result)
+        self.assertEqual(0, len(response.errors))
+
     def test_spawning_linters(self):
         self.create_linter_instances(10, "1.0")
         result = machine_manager_api.get_linters(self.machine_manager_url)
 
         for linter_instance in result:
             response: LinterResponse = LinterResponse.from_dict(
-                linter_api.validate(linter_instance.address, LinterRequest(language="python", code="x=5")))
+                linter_api.validate(linter_instance.address, LinterRequest(language="python", code="x = 5")))
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
+
+    def test_replacing_linter_with_different_nonexistent_version(self):
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual("1.0", linters[0].version)
+
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual(1, len(linters))
+        self.assertEqual("1.0", linters[0].version)
 
     def test_replacing_linter_with_different_version(self):
         self.create_linter_instances(1, "1.0")
@@ -86,7 +114,7 @@ class E2eTests(unittest.TestCase):
 
     def test_load_balancer_with_no_linters(self):
         response: LinterResponse = LinterResponse.from_dict(
-            load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x=5")))
+            load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x = 5")))
 
         self.assertEqual("fail", response.result)
         self.assertEqual(1, len(response.errors))
@@ -97,10 +125,17 @@ class E2eTests(unittest.TestCase):
 
         for i in range(100):
             response: LinterResponse = LinterResponse.from_dict(
-                load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x=5")))
+                load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x = 5")))
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
+
+    def test_setting_path_to_linter_binary(self):
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+
+        response: LinterResponse = LinterResponse.from_dict(
+            load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x = 5")))
+        self.assertEqual("Current path to linter binary: ./linters/python/bin/linter_1.0", response.debug[1])
 
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
@@ -177,6 +212,7 @@ class E2eTests(unittest.TestCase):
         self.single_manager_update(n, v3, steps[0])
         self.single_manager_rollback(v1)
 
+    # TODO update -> rollback -> update
 
 if __name__ == "__main__":
     unittest.main()
