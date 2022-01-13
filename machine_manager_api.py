@@ -6,8 +6,8 @@ from schema import ExistingInstance
 
 
 def get_linters(url):
-    result_raw = requests.get(f"{url}/linters").json()
-    print(result_raw)
+    full_url = f"{url}/linters"
+    result_raw = requests.get(full_url).json()
     return [ExistingInstance.from_json(json.dumps(elem)) for elem in result_raw]
 
 

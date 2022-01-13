@@ -1,1 +1,1 @@
-uvicorn machine_manager:machine_manager_app --port=5000 --reload
+uvicorn machine_manager:machine_manager_app --port=5000
