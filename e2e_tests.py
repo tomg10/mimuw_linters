@@ -90,6 +90,16 @@ class E2eTests(unittest.TestCase):
         self.assertEqual("1.0", linters[0].version)
 
     def test_replacing_linter_with_different_version(self):
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual("1.0", linters[0].version)
+
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual(1, len(linters))
+        self.assertEqual("1.0", linters[0].version)
+
+    def test_replacing_linter_with_different_version(self):
         self.create_linter_instances(1, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
@@ -144,12 +154,13 @@ class E2eTests(unittest.TestCase):
         update_status = update_manager_api.status(self.update_manager_url, version)
 
         if last_step:
+            print("response: ", response)
             self.assertEqual(response["status_code"], 400)
             self.assertEqual(response["detail"], "Update already finished")
         else:
             self.assertEqual(response, "ok")
 
-        self.assertEqual(n * step, how_many_updated)
+        self.assertEqual(round(n * step), how_many_updated)
         self.assertEqual(update_status, step)
 
     def test_update_manager_single_update(self):
@@ -173,10 +184,11 @@ class E2eTests(unittest.TestCase):
         steps = [0.1, 0.5, 1]
 
         self.create_linter_instances(n, v1)
-
         for step in steps[:1]:
             self.single_manager_update(n, v2, step)
             self.single_manager_update(n, v3, step)
+
+        self.single_manager_update(n, version1, steps[-1], True)
 
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
