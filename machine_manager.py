@@ -1,7 +1,7 @@
 from typing import List
 from multiprocessing import Lock
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 import local_linter_deployer
 from schema import ExistingInstance
@@ -27,7 +27,7 @@ def get_linters() -> List[ExistingInstance]:
 
 
 @machine_manager_app.post("/deploy-linter-version")
-def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
+def deploy_linter_version(linter_version, instance_id=None):
     try:
         lock.acquire()
 
@@ -35,7 +35,7 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
         linters[linter.instance_id] = linter
         return linter
     except:
-        pass  # If we didn't create an instance, don't worry, maybe next time.
+        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
     finally:
         lock.release()
 
