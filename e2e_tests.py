@@ -109,6 +109,7 @@ class E2eTests(unittest.TestCase):
         update_status = update_manager_api.status(self.update_manager_url, version)
 
         if last_step:
+            print("response: ", response)
             self.assertEqual(response["status_code"], 400)
             self.assertEqual(response["detail"], "Update already finished")
         else:
@@ -139,7 +140,7 @@ class E2eTests(unittest.TestCase):
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
 
-        for step in steps[:2]:
+        for step in steps:
             self.single_manager_update(n, version1, step)
             self.single_manager_update(n, version2, step)
 
