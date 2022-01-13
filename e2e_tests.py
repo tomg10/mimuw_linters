@@ -32,7 +32,7 @@ class E2eTests(unittest.TestCase):
         load_balancer_api.set_machine_manager(self.load_balancer_url, self.machine_manager_url)
 
     def tearDown(self) -> None:
-        linters = machine_manager_api.get_machines(self.machine_manager_url)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
         for linter in linters:
             machine_manager_api.kill_linter_instance(self.machine_manager_url, linter.instance_id)
 
@@ -45,13 +45,13 @@ class E2eTests(unittest.TestCase):
     def test_getting_linters(self):
         for i in range(10):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-        result = machine_manager_api.get_machines(self.machine_manager_url)
+        result = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(10, len(result))
 
     def test_spawning_linters(self):
         for i in range(10):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-        result = machine_manager_api.get_machines(self.machine_manager_url)
+        result = machine_manager_api.get_linters(self.machine_manager_url)
 
         for linter_instance in result:
             response: LinterResponse = LinterResponse.from_dict(
@@ -61,35 +61,35 @@ class E2eTests(unittest.TestCase):
 
     def test_replacing_linter_with_different_version(self):
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
-        self.assertEqual("1.0", machines[0].version)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual("1.0", linters[0].version)
 
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "2.0", machines[0].instance_id)
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
-        self.assertEqual(1, len(machines))
-        self.assertEqual("2.0", machines[0].version)
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "2.0", linters[0].instance_id)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual(1, len(linters))
+        self.assertEqual("2.0", linters[0].version)
 
     def test_killing_linters(self):
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
 
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
-        id1 = machines[0].instance_id
-        id2 = machines[1].instance_id
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        id1 = linters[0].instance_id
+        id2 = linters[1].instance_id
 
         machine_manager_api.kill_linter_instance(self.machine_manager_url, id1)
 
-        machines = machine_manager_api.get_machines(self.machine_manager_url)
-        self.assertEqual(1, len(machines))
-        self.assertEqual(id2, machines[0].instance_id)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual(1, len(linters))
+        self.assertEqual(id2, linters[0].instance_id)
 
-    def test_load_balancer_with_no_machines(self):
+    def test_load_balancer_with_no_linters(self):
         response: LinterResponse = LinterResponse.from_dict(
             load_balancer_api.validate(self.load_balancer_url, LinterRequest(language="python", code="x=5")))
 
         self.assertEqual("fail", response.result)
         self.assertEqual(1, len(response.errors))
-        self.assertEqual("No linter machine available", response.errors[0])
+        self.assertEqual("No linter instance available", response.errors[0])
 
     def test_load_balancer_equal_split(self):
         for i in range(10):
