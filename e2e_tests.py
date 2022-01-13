@@ -173,8 +173,8 @@ class E2eTests(unittest.TestCase):
         self.create_linter_instances(n, v1)
 
         self.single_manager_update(n, v2, steps[0])
-        self.single_manager_update(n, v3, steps[0])
         self.single_manager_update(n, v2, steps[1])
+        self.single_manager_update(n, v3, steps[0])
         self.single_manager_rollback(v1)
 
 
