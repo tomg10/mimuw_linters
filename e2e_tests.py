@@ -42,15 +42,18 @@ class E2eTests(unittest.TestCase):
 
         E2eTests.unset_linter_debug_mode()
 
+    def create_linter_instances(self, n: int, version: str, instance_id: str = None):
+        for i in range(n):
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, version, instance_id)
+
+
     def test_getting_linters(self):
-        for i in range(10):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        self.create_linter_instances(10, "1.0")
         result = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(10, len(result))
 
     def test_spawning_linters(self):
-        for i in range(10):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        self.create_linter_instances(10, "1.0")
         result = machine_manager_api.get_linters(self.machine_manager_url)
 
         for linter_instance in result:
@@ -60,18 +63,17 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(0, len(response.errors))
 
     def test_replacing_linter_with_different_version(self):
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        self.create_linter_instances(1, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
 
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "2.0", linters[0].instance_id)
+        self.create_linter_instances(2, "2.0", linters[0].instance_id)
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(1, len(linters))
         self.assertEqual("2.0", linters[0].version)
 
     def test_killing_linters(self):
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        self.create_linter_instances(2, "1.0")
 
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         id1 = linters[0].instance_id
@@ -92,8 +94,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual("No linter instance available", response.errors[0])
 
     def test_load_balancer_equal_split(self):
-        for i in range(10):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+        self.create_linter_instances(10, "1.0")
 
         for i in range(100):
             response: LinterResponse = LinterResponse.from_dict(
@@ -119,29 +120,29 @@ class E2eTests(unittest.TestCase):
 
     def test_update_manager_single_update(self):
         n = 10
-        version = "2.0"
+        v1 = "1.0"
+        v2 = "2.0"
         steps = [0.1, 0.5, 1]
 
-        for i in range(n):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+        self.create_linter_instances(n, v1)
 
         for step in steps:
-            self.single_manager_update(n, version, step)
+            self.single_manager_update(n, v2, step)
 
-        self.single_manager_update(n, version, steps[-1], True)
+        self.single_manager_update(n, v2, steps[-1], True)
 
     def test_update_manager_double_update(self):
         n = 10
-        version1 = "2.0"
-        version2 = "3.0"
+        v1 = "1.0"
+        v2 = "2.0"
+        v3 = "3.0"
         steps = [0.1, 0.5, 1]
 
-        for i in range(n):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+        self.create_linter_instances(n, v1)
 
         for step in steps[:1]:
-            self.single_manager_update(n, version1, step)
-            self.single_manager_update(n, version2, step)
+            self.single_manager_update(n, v2, step)
+            self.single_manager_update(n, v3, step)
 
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
@@ -154,28 +155,28 @@ class E2eTests(unittest.TestCase):
 
     def test_single_rollback(self):
         n = 10
-        version = "2.0"
+        v1 = "2.0"
+        v2 = "2.0"
         steps = [0.1, 0.5, 1]
 
-        for i in range(n):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+        self.create_linter_instances(n, v1)
 
-        self.single_manager_update(n, version, steps[0])
-        self.single_manager_rollback("1.0")
+        self.single_manager_update(n, v2, steps[0])
+        self.single_manager_rollback(v1)
 
     def test_double_rollback(self):
         n = 10
-        version1 = "2.0"
-        version2 = "3.0"
+        v1 = "1.0"
+        v2 = "2.0"
+        v3 = "3.0"
         steps = [0.1, 0.5, 1]
 
-        for i in range(n):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+        self.create_linter_instances(n, v1)
 
-        self.single_manager_update(n, version1, steps[0])
-        self.single_manager_update(n, version2, steps[0])
-        self.single_manager_update(n, version2, steps[1])
-        self.single_manager_rollback("1.0")
+        self.single_manager_update(n, v2, steps[0])
+        self.single_manager_update(n, v2, steps[0])
+        self.single_manager_update(n, v3, steps[1])
+        self.single_manager_rollback(v1)
 
 
 if __name__ == "__main__":
