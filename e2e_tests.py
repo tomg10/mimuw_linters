@@ -174,7 +174,7 @@ class E2eTests(unittest.TestCase):
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
 
-        for step in steps[:2]:
+        for step in steps:
             self.single_manager_update(n, version1, step)
             self.single_manager_update(n, version2, step)
 
@@ -214,7 +214,7 @@ class E2eTests(unittest.TestCase):
         self.single_manager_update(n, version1, steps[1])
         self.single_manager_rollback("1.0")
 
-        #TODO update -> rollback -> update
+    #TODO update -> rollback -> update
 
 if __name__ == "__main__":
     unittest.main()
