@@ -35,10 +35,12 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     global responses_count
 
     debug = []
+    local_linter_path_to_binary = ""
     try:
         lock.acquire()
 
         responses_count += 1
+        local_linter_path_to_binary = linter_path_to_binary
 
         if get_env_or_raise("LINTER_DEBUG"):
             debug = [
@@ -54,7 +56,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         f.write(request.code)
 
     with open(tmp_file_name, "r") as f:
-        result = subprocess.run([f"{linter_path_to_binary}"], text=True, stdin=f, stdout=subprocess.PIPE)
+        result = subprocess.run([f"{local_linter_path_to_binary}"], text=True, stdin=f, stdout=subprocess.PIPE)
     os.remove(tmp_file_name)
 
     if result.returncode == 0:
