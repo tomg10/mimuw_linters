@@ -102,7 +102,7 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(0, len(response.errors))
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
 
-    def single_manager_update(self, n, version, step, last_step=False):
+    def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
         machines = machine_manager_api.get_machines(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version >= version, machines)))
@@ -134,14 +134,48 @@ class E2eTests(unittest.TestCase):
         n = 10
         version1 = "2.0"
         version2 = "3.0"
-        steps = [0.1, 0.5]
+        steps = [0.1, 0.5, 1]
 
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
 
-        for step in steps:
+        for step in steps[:1]:
             self.single_manager_update(n, version1, step)
             self.single_manager_update(n, version2, step)
+
+    def single_manager_rollback(self, version: str):
+        update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
+        machines = machine_manager_api.get_machines(self.machine_manager_url)
+        how_many_updated = len(list(filter(lambda machine: machine.version > version, machines)))
+        update_status = update_manager_api.status(self.update_manager_url, version)
+
+        self.assertEqual(0, how_many_updated)
+        self.assertEqual(update_status, 0)
+
+    def test_single_rollback(self):
+        n = 10
+        version = "2.0"
+        steps = [0.1, 0.5, 1]
+
+        for i in range(n):
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+
+        self.single_manager_update(n, version, steps[0])
+        self.single_manager_rollback("1.0")
+
+    def test_double_rollback(self):
+        n = 10
+        version1 = "2.0"
+        version2 = "3.0"
+        steps = [0.1, 0.5, 1]
+
+        for i in range(n):
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0", None)
+
+        self.single_manager_update(n, version1, steps[0])
+        self.single_manager_update(n, version2, steps[0])
+        self.single_manager_update(n, version2, steps[1])
+        self.single_manager_rollback("1.0")
 
 
 if __name__ == "__main__":
