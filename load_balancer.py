@@ -1,14 +1,17 @@
 import os
 
 from fastapi import FastAPI
+from multiprocessing import Lock
 
 import linter_api
 import machine_manager_api
 from schema import LinterResponse, LinterRequest
 
-load_balancer_app = FastAPI()
 
-machine_number = 0
+load_balancer_app = FastAPI()
+lock = Lock()
+
+linter_number = 0
 machine_manager_url = ""
 
 
@@ -27,7 +30,10 @@ def set_machine_manager(machine_manager: str = "") -> None:
 
 @load_balancer_app.post("/validate")
 def validate_file(request: LinterRequest) -> LinterResponse:
-    global machine_number
+    global linter_number
+
+    linters = machine_manager_api.get_linters(machine_manager_url)
+    linters.sort(key=lambda linter: linter.instance_id)
 
     machines = machine_manager_api.get_machines(machine_manager_url)
 
@@ -36,11 +42,20 @@ def validate_file(request: LinterRequest) -> LinterResponse:
 
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
     for _ in range(retries_count):
-        machine_number += 1
-        if machine_number >= len(machines):
-            machine_number = 0
+        local_linter_number = 0
         try:
-            return linter_api.validate(machines[machine_number - 1].address, request)
+            lock.acquire()
+
+            if linter_number >= len(linters):
+                linter_number = 0
+
+            local_linter_number = linter_number
+            linter_number += 1
+        finally:
+            lock.release()
+
+        try:
+            return linter_api.validate(machines[local_linter_number - 1].address, request)
         except:
             continue
 
