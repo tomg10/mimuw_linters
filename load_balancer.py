@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 
 import linter_api
@@ -32,7 +34,8 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     if len(machines) == 0:
         return LinterResponse(result="fail", errors=["No linter machine available"], debug=[])
 
-    for _ in range(3):
+    retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
+    for _ in range(retries_count):
         machine_number += 1
         if machine_number >= len(machines):
             machine_number = 0
