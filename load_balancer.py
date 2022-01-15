@@ -8,25 +8,16 @@ import linter_api
 import machine_manager_api
 from schema import LinterResponse, LinterRequest
 
-
 load_balancer_app = FastAPI()
 lock = Lock()
 
 linter_number = 0
-machine_manager_url = ""
+machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
 
 @load_balancer_app.get("/")
 def health_check() -> str:
     return "ok balancer"
-
-
-@load_balancer_app.get("/set_machine_manager")
-def set_machine_manager(machine_manager: str = "") -> None:
-    global machine_manager_url
-
-    machine_manager_url = machine_manager
-    print(f"Machine manager set up on: {machine_manager_url}")
 
 
 @load_balancer_app.post("/validate")
