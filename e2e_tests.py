@@ -15,15 +15,15 @@ linter_client = TestClient(linter_app)
 
 class E2eTests(unittest.TestCase):
     @staticmethod
-    def set_linter_debug_mode():
-        os.environ["LINTER_DEBUG"] = "true"
+    def set_linter_test_logging():
+        os.environ["LINTER_TEST_LOGGING"] = "true"
 
     @staticmethod
-    def unset_linter_debug_mode():
-        os.environ.pop("LINTER_DEBUG")
+    def unset_linter_test_logging():
+        os.environ.pop("LINTER_TEST_LOGGING")
 
     def setUp(self) -> None:
-        E2eTests.set_linter_debug_mode()
+        E2eTests.set_linter_test_logging()
 
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
@@ -38,7 +38,7 @@ class E2eTests(unittest.TestCase):
         deploy_utils.stop_fast_api_app(self.load_balancer_process)
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
 
-        E2eTests.unset_linter_debug_mode()
+        E2eTests.unset_linter_test_logging()
 
     def test_getting_linters(self):
         for i in range(10):
@@ -136,7 +136,7 @@ class E2eTests(unittest.TestCase):
                                            self.machine_manager_url))
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
-            self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
+            self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.test_logging[0])
 
     def test_setting_path_to_linter_binary(self):
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
@@ -145,7 +145,7 @@ class E2eTests(unittest.TestCase):
             load_balancer_api.validate(self.load_balancer_url,
                                        LinterRequest(language="python", code="x = 5"),
                                        self.machine_manager_url))
-        self.assertEqual("Current path to linter binary: ./linters/python/bin/linter_1.0", response.debug[1])
+        self.assertEqual("Current path to linter binary: ./linters/python/bin/linter_1.0", response.test_logging[1])
         
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)

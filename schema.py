@@ -15,7 +15,7 @@ class LinterRequest:
 class LinterResponse:
     result: str
     errors: List[str]
-    debug: List[str]
+    test_logging: List[str]
 
 
 @dataclass_json

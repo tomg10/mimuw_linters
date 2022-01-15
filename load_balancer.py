@@ -27,7 +27,7 @@ def validate_file(request: LinterRequest, machine_manager_url: str = "") -> Lint
     linters.sort(key=lambda linter: linter.instance_id)
 
     if len(linters) == 0:
-        return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
+        return LinterResponse(result="fail", errors=["No linter instance available"], test_logging=[])
 
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
     for _ in range(retries_count):
@@ -45,4 +45,4 @@ def validate_file(request: LinterRequest, machine_manager_url: str = "") -> Lint
             print(traceback.format_exc())
             continue
 
-    return LinterResponse(result="fail", errors=["No linter instance was able to handle request"], debug=[])
+    return LinterResponse(result="fail", errors=["No linter instance was able to handle request"], test_logging=[])
