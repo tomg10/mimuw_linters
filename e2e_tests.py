@@ -84,10 +84,13 @@ class E2eTests(unittest.TestCase):
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
 
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
+        response = machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(1, len(linters))
         self.assertEqual("1.0", linters[0].version)
+
+        self.assertEqual(response["status_code"], 400)
+        self.assertEqual(response["detail"], "Could not (re)start linter with version 1.0_nonexistent")
 
     def test_replacing_linter_with_different_version(self):
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")

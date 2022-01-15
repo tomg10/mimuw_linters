@@ -35,7 +35,7 @@ def deploy_linter_version(linter_version, instance_id=None):
         linters[linter.instance_id] = linter
         return linter
     except:
-        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
+        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version {linter_version}")
     finally:
         lock.release()
 
