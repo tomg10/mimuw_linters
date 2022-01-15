@@ -1,6 +1,5 @@
 import unittest
 import os
-
 from fastapi.testclient import TestClient
 
 import deploy_utils

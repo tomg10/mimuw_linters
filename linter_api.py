@@ -1,5 +1,4 @@
 import dataclasses
-
 import requests
 
 from schema import LinterRequest

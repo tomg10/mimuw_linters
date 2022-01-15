@@ -1,6 +1,5 @@
 from typing import List
 from multiprocessing import Lock
-
 from fastapi import FastAPI, HTTPException
 
 import local_linter_deployer
