@@ -16,7 +16,7 @@ linter_number = 0
 
 @load_balancer_app.get("/")
 def health_check() -> str:
-    return "ok balancer"
+    return "ok"
 
 
 @load_balancer_app.post("/validate")

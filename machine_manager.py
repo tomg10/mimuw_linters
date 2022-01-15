@@ -13,7 +13,7 @@ linters = {}
 
 @machine_manager_app.get("/")
 def get_health():
-    return "ok machine_manager"
+    return "ok"
 
 
 @machine_manager_app.get("/linters")

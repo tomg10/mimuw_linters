@@ -16,7 +16,7 @@ linter_path_to_binary = ""
 
 @linter_app.get("/")
 def health_check() -> str:
-    return "ok linter"
+    return "ok"
 
 
 @linter_app.post("/set_binary")
