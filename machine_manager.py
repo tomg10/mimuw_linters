@@ -1,10 +1,15 @@
 from typing import List
 from multiprocessing import Lock
 from fastapi import FastAPI, HTTPException
+import logging
+from logging.config import dictConfig
 
+from configs.machine_manager.logging_config import log_config
 import local_linter_deployer
 from schema import ExistingInstance
 
+dictConfig(log_config)
+logger = logging.getLogger("machine_manager_logger")
 machine_manager_app = FastAPI()
 lock = Lock()
 
@@ -34,6 +39,7 @@ def deploy_linter_version(linter_version, instance_id=None):
         linters[linter.instance_id] = linter
         return linter
     except:
+        logger.exception(f"Deployment of linter with version {linter_version} and instance ID {instance_id} failed.")
         return HTTPException(status_code=400, detail=f"Could not (re)start linter with version {linter_version}")
     finally:
         lock.release()
