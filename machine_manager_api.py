@@ -1,8 +1,8 @@
 import json
 import requests
 
-from typing import Union
 from schema import ExistingInstance
+
 
 def get_linters(url):
     full_url = f"{url}/linters"

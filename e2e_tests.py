@@ -9,7 +9,7 @@ import update_manager_api
 import load_balancer_api
 import machine_manager_api
 from linter import linter_app
-from schema import LinterRequest, LinterResponse
+from schema import LinterRequest
 
 linter_client = TestClient(linter_app)
 
@@ -90,17 +90,17 @@ class E2eTests(unittest.TestCase):
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
 
-    def test_replacing_linter_with_different_nonexistent_version(self):
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
+    def test_replacing_linter_with_different_version(self):
+        self.create_linter_instances(1, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
-        self.assertEqual("1.0", linters[0].version)
-        with self.assertRaises(Exception):
-            machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
-        linters = machine_manager_api.get_linters(self.machine_manager_url)
-        self.assertEqual(1, len(linters))
         self.assertEqual("1.0", linters[0].version)
 
-    def test_replacing_linter_with_different_version(self):
+        self.create_linter_instances(1, "2.0", linters[0].instance_id)
+        linters = machine_manager_api.get_linters(self.machine_manager_url)
+        self.assertEqual(1, len(linters))
+        self.assertEqual("2.0", linters[0].version)
+
+    def test_replacing_linter_with_nonexistent_version(self):
         self.create_linter_instances(1, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
