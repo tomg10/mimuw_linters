@@ -33,4 +33,4 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     return linter_api.validate(url=real_linter_url, request=request)
 
 
-print("started linter instance!")
+print("started killable linter proxy instance!")

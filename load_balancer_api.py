@@ -6,6 +6,6 @@ import requests
 from schema import LinterRequest, LinterResponse
 
 
-def validate(url, request: LinterRequest):
+def validate(url, request: LinterRequest) -> LinterResponse:
     response = requests.post(f"{url}/validate", json=dataclasses.asdict(request)).json()
     return LinterResponse.from_json(json.dumps(response))

@@ -1,6 +1,6 @@
 import os
 import traceback
-from typing import List
+from typing import List, Union
 from multiprocessing import Lock
 
 from fastapi import FastAPI, HTTPException
@@ -30,7 +30,7 @@ def get_linters() -> List[ExistingInstance]:
 
 
 @machine_manager_app.post("/deploy-linter-version")
-def deploy_linter_version(linter_version, instance_id=None):
+def deploy_linter_version(linter_version, instance_id=None) -> Union[ExistingInstance, HTTPException]:
     try:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':

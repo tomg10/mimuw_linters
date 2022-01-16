@@ -238,6 +238,7 @@ class E2eTests(unittest.TestCase):
         response = load_balancer_api.validate(self.load_balancer_url,
                                               request=LinterRequest(code='var x = a', language='python'))
         self.assertEqual("fail", response.result)
+        self.assertEqual(["No linter instance was able to handle request"], response.errors)
 
     def test_two_killed_linters_do_not_cause_outages(self):
         self.restart_machine_manager_with_deploy_backend(deploy_backend_name='killable_proxy')
