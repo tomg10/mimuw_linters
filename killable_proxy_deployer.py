@@ -1,7 +1,11 @@
+import logging
+
 import deploy_utils
 import killable_linter_proxy_api
 import local_linter_deployer
 from schema import ExistingInstance
+
+logger = logging.getLogger("killable_proxy_deployer_logger")
 
 linters_proxies = {}
 linters_proxies_urls = {}
@@ -13,7 +17,7 @@ def kill_linter_instance(instance_id):
 
 
 def deploy_linter_instance(linter_version, instance_id=None):
-    print(f"deploying killable proxy with version {linter_version}")
+    logger.debug(f"deploying killable proxy with version {linter_version}")
     if instance_id is not None:
         linters_proxies.pop(instance_id).kill()
 

@@ -1,12 +1,11 @@
 import time
-
 import requests
 
 
 def is_healthy(url):
     try:
         result = requests.get(url + "/").json()
-        return result.split()[0] == "ok"
+        return result == "ok"
     except:
         return False
 

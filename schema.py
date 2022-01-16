@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import List
-
 from dataclasses_json import dataclass_json
 
 
@@ -16,7 +15,7 @@ class LinterRequest:
 class LinterResponse:
     result: str
     errors: List[str]
-    debug: List[str]
+    test_logging: List[str]
 
 
 @dataclass_json

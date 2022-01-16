@@ -3,11 +3,16 @@ from fastapi import FastAPI
 from multiprocessing import Lock
 import subprocess
 import random
+import logging
+from logging.config import dictConfig
 
+from configs.linters.logging_config import log_config
 import simple_python_linter
 from services_addresses import get_env_or_raise
 from schema import LinterRequest, LinterResponse
 
+dictConfig(log_config)
+logger = logging.getLogger("linter_logger")
 linter_app = FastAPI()
 lock = Lock()
 
@@ -17,7 +22,7 @@ linter_path_to_binary = ""
 
 @linter_app.get("/")
 def health_check() -> str:
-    return "ok linter"
+    return "ok"
 
 
 @linter_app.post("/set_binary")
@@ -35,7 +40,7 @@ def set_binary(path_to_binary: str) -> None:
 def validate_file(request: LinterRequest) -> LinterResponse:
     global responses_count
 
-    debug = []
+    test_logging = []
     local_linter_path_to_binary = ""
     try:
         lock.acquire()
@@ -43,8 +48,10 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         responses_count += 1
         local_linter_path_to_binary = linter_path_to_binary
 
-        if get_env_or_raise("LINTER_DEBUG"):
-            debug = [
+        logger.debug(f"Response count now at {responses_count}.")
+
+        if get_env_or_raise("LINTER_TEST_LOGGING"):
+            test_logging = [
                 f"Current responses_count: {responses_count}",
                 f"Current path to linter binary: {linter_path_to_binary}",
             ]
@@ -56,4 +63,4 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     return response
 
 
-print("started linter instance!")
+logger.debug("Started linter instance!")

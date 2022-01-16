@@ -1,6 +1,5 @@
 import dataclasses
 import json
-
 import requests
 
 from schema import LinterRequest, LinterResponse
