@@ -90,8 +90,7 @@ class E2eTests(unittest.TestCase):
         result = machine_manager_api.get_linters(self.machine_manager_url)
 
         for linter_instance in result:
-            response = linter_api.validate(linter_instance.address,
-                                           E2eTests.flawless_python_request)
+            response = linter_api.validate(linter_instance.address, E2eTests.flawless_python_request)
             self.assertEqual("ok", response.result)
             self.assertEqual(0, len(response.errors))
 

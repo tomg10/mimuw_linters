@@ -1,12 +1,16 @@
 import os
-import traceback
 from fastapi import FastAPI
 from multiprocessing import Lock
+import logging
+from logging.config import dictConfig
 
+from configs.load_balancer.logging_config import log_config
 import linter_api
 import machine_manager_api
 from schema import LinterResponse, LinterRequest
 
+dictConfig(log_config)
+logger = logging.getLogger("load_balancer_logger")
 load_balancer_app = FastAPI()
 lock = Lock()
 
@@ -29,7 +33,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         return LinterResponse(result="fail", errors=["No linter instance available"], test_logging=[])
 
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
-    for _ in range(retries_count):
+    for retry_number in range(retries_count):
         lock.acquire()
         local_linter_number = linter_number
 
@@ -41,7 +45,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         try:
             return linter_api.validate(linters[local_linter_number - 1].address, request)
         except:
-            print(traceback.format_exc())
+            logger.exception("Load balancer did not get a response from linter. Number of try: %d", retry_number + 1)
             continue
 
     return LinterResponse(result="fail", errors=["No linter instance was able to handle request"], test_logging=[])

@@ -1,9 +1,14 @@
-import machine_manager_api
 import random
-
 from fastapi import FastAPI, HTTPException
 from multiprocessing import Lock
+import logging
+from logging.config import dictConfig
 
+from configs.update_manager.logging_config import log_config
+import machine_manager_api
+
+dictConfig(log_config)
+logger = logging.getLogger("update_manager_logger")
 update_manager_app = FastAPI()
 lock = Lock()
 
@@ -64,7 +69,7 @@ def rollback(machine_manager_url: str, version: str):
         newer_machines = list(filter(lambda machine: machine.version > version, machines_list))
 
         for machine in newer_machines:
-            print("rollback machine: ", machine.instance_id)
+            logger.debug(f"rollback machine: {machine.instance_id}")
             machine_manager_api.deploy_linter_instance(machine_manager_url, version, machine.instance_id)
 
         for key in updates_progress:
