@@ -11,7 +11,7 @@ load_balancer_app = FastAPI()
 lock = Lock()
 
 linter_number = 0
-
+machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
 @load_balancer_app.get("/")
 def health_check() -> str:
@@ -19,7 +19,7 @@ def health_check() -> str:
 
 
 @load_balancer_app.post("/validate")
-def validate_file(request: LinterRequest, machine_manager_url: str = "") -> LinterResponse:
+def validate_file(request: LinterRequest) -> LinterResponse:
     global linter_number
 
     linters = machine_manager_api.get_linters(machine_manager_url)
