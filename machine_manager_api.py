@@ -1,8 +1,8 @@
 import json
 import requests
 
+from typing import Union
 from schema import ExistingInstance
-
 
 def get_linters(url):
     full_url = f"{url}/linters"
@@ -12,10 +12,14 @@ def get_linters(url):
 
 def deploy_linter_instance(url, linter_version, instance_id=None) -> ExistingInstance:
     full_url = f"{url}/deploy-linter-version?linter_version={linter_version}"
-    if instance_id:
+    if instance_id is not None:
         full_url += f"&instance_id={instance_id}"
-    response = requests.post(full_url).json()
-    return ExistingInstance.from_json(json.dumps(response))
+    response = requests.post(full_url)
+
+    if response.status_code == 200:
+        return ExistingInstance.from_json(json.dumps(response.json()))
+    else:
+        raise Exception(response.json())
 
 
 def kill_linter_instance(url, instance_id):

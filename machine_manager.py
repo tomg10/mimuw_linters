@@ -31,7 +31,7 @@ def get_linters() -> List[ExistingInstance]:
 
 
 @machine_manager_app.post("/deploy-linter-version")
-def deploy_linter_version(linter_version, instance_id=None) -> Union[ExistingInstance, HTTPException]:
+def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
     try:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':
@@ -42,7 +42,7 @@ def deploy_linter_version(linter_version, instance_id=None) -> Union[ExistingIns
         return linter
     except Exception as e:
         print(traceback.format_exc())
-        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
+        raise HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
     finally:
         lock.release()
 

@@ -105,7 +105,8 @@ class E2eTests(unittest.TestCase):
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
 
-        self.create_linter_instances(1, "1.0_nonexistent", linters[0].instance_id)
+        with self.assertRaises(Exception):
+            self.create_linter_instances(1, "1.0_nonexistent", linters[0].instance_id)
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual(1, len(linters))
         self.assertEqual("1.0", linters[0].version)
