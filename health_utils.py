@@ -15,3 +15,4 @@ def wait_for_healthy_state(url):
         if is_healthy(url):
             return
         time.sleep(0.1)
+    raise Exception(f"App on {url} is not healthy!")
