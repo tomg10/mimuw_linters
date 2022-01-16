@@ -17,8 +17,9 @@ def get_health():
     return "ok"
 
 
+#TODO
 @update_manager_app.post("/update")
-def update(machine_manager_url: str, version: str):
+def update(machine_manager_url: str, language: str, version: str):
     try:
         lock.acquire()
         current_progress = updates_progress.get(version, 0)

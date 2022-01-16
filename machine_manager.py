@@ -17,24 +17,27 @@ def get_health():
 
 
 @machine_manager_app.get("/linters")
-def get_linters() -> List[ExistingInstance]:
+def get_linters(language: str = None) -> List[ExistingInstance]:
     try:
         lock.acquire()
+        if language:
+            return list(filter(lambda linter: (language in linter.languages), linters.values()))
         return list(linters.values())
     finally:
         lock.release()
 
 
 @machine_manager_app.post("/deploy-linter-version")
-def deploy_linter_version(linter_version, instance_id=None):
+def deploy_linter_instance(languages: dict[str, str], instance_id=None):
     try:
         lock.acquire()
 
-        linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
+        linter = local_linter_deployer.deploy_linter_instance(languages, instance_id)
         linters[linter.instance_id] = linter
         return linter
     except:
-        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version {linter_version}")
+        return HTTPException(status_code=400,
+                             detail=f"Could not (re)start linter with languages {languages}")
     finally:
         lock.release()
 

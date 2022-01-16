@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from multiprocessing import Lock
 import subprocess
 import random
@@ -11,7 +11,7 @@ linter_app = FastAPI()
 lock = Lock()
 
 responses_count = 0
-linter_path_to_binary = ""
+languages_binaries_paths = {}
 
 
 @linter_app.get("/")
@@ -20,32 +20,37 @@ def health_check() -> str:
 
 
 @linter_app.post("/set_binary")
-def set_binary(path_to_binary: str) -> None:
-    global linter_path_to_binary
+def set_binary(language: str, path_to_binary: str) -> None:
+    global languages_binaries_paths
 
     try:
         lock.acquire()
-        linter_path_to_binary = path_to_binary
+        languages_binaries_paths[language] = path_to_binary
     finally:
         lock.release()
 
 
 @linter_app.post("/validate")
-def validate_file(request: LinterRequest) -> LinterResponse:
+def validate_file(request: LinterRequest):
     global responses_count
 
     test_logging = []
-    local_linter_path_to_binary = ""
+    path_to_binary = ""
     try:
         lock.acquire()
 
         responses_count += 1
-        local_linter_path_to_binary = linter_path_to_binary
+
+        if request.language not in languages_binaries_paths:
+            return HTTPException(status_code=400,
+                                 detail=f"This linter does not support {request.language} language. "
+                                        f"Supported languages: {languages_binaries_paths}")
+        path_to_binary = languages_binaries_paths[request.language]
 
         if get_env_or_raise("LINTER_TEST_LOGGING"):
             test_logging = [
                 f"Current responses_count: {responses_count}",
-                f"Current path to linter binary: {linter_path_to_binary}",
+                f"Current languages with linter binaries: {languages_binaries_paths}",
             ]
     finally:
         lock.release()
@@ -56,7 +61,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         f.write(request.code)
 
     with open(tmp_file_name, "r") as f:
-        result = subprocess.run([f"{local_linter_path_to_binary}"], text=True, stdin=f, stdout=subprocess.PIPE)
+        result = subprocess.run([f"{path_to_binary}"], text=True, stdin=f, stdout=subprocess.PIPE)
     os.remove(tmp_file_name)
 
     if result.returncode == 0:
