@@ -199,8 +199,6 @@ class E2eTests(unittest.TestCase):
             self.single_manager_update(n, v2, step)
             self.single_manager_update(n, v3, step)
 
-        self.single_manager_update(n, version1, steps[-1], True)
-
     def single_manager_rollback(self, version: str):
         update_manager_api.rollback(self.update_manager_url, self.machine_manager_url, version)
         machines = machine_manager_api.get_linters(self.machine_manager_url)
