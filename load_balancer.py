@@ -7,7 +7,6 @@ import linter_api
 import machine_manager_api
 from schema import LinterResponse, LinterRequest
 
-
 load_balancer_app = FastAPI()
 lock = Lock()
 
