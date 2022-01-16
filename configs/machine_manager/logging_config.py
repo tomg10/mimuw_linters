@@ -19,6 +19,11 @@ log_config = {
             "formatter": "main",
             "filename": "logs/local_linter_deployer.log",
         },
+        "killable_proxy_deployer": {
+            "class": "logging.FileHandler",
+            "formatter": "main",
+            "filename": "logs/killable_proxy_deployer.log",
+        },
     },
     "loggers": {
         "machine_manager_logger": {
@@ -28,6 +33,10 @@ log_config = {
         "local_linter_deployer_logger": {
             "level": "DEBUG",
             "handlers": ["local_linter_deployer"],
+        },
+        "killable_proxy_deployer_logger": {
+            "level": "DEBUG",
+            "handlers": ["killable_proxy_deployer"],
         },
     },
     "disable_existing_loggers": False,

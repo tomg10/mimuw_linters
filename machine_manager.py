@@ -18,7 +18,7 @@ lock = Lock()
 
 linters = {}
 deploy_backend_type = os.environ.get("MACHINE_MANAGER_DEPLOY_BACKEND", "local")
-print(f"Starting machine manager with backend {deploy_backend_type}")
+logger.info(f"Starting machine manager with backend {deploy_backend_type}")
 
 
 @machine_manager_app.get("/")
