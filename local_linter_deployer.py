@@ -1,3 +1,4 @@
+import json
 import uuid
 import os
 
@@ -7,6 +8,11 @@ from schema import ExistingInstance
 
 linters = {}
 
+versions_string = os.environ.get("LOCAL_DEPLOYER_SUPPORTED_VERSIONS", "1.0:linter")
+versions = {}
+for version in versions_string.split(','):
+    versions[version.split(":")[0]] = version.split(":")[1]
+print(f"supported_linter_versions: {json.dumps(versions, indent=2)}")
 
 def kill_linter_instance(instance_id):
     print(f"killing instance {instance_id}")
@@ -21,18 +27,16 @@ def deploy_linter_instance(linter_version, instance_id=None):
     else:
         scheduled_to_kill = True
 
-    print(f"deploying linter instance with version {linter_version} on instance {instance_id}")
-    process, address = deploy_utils.start_fast_api_app("linter")
+    if linter_version not in versions:
+        raise Exception(f"unsupported linter version: {linter_version}")
 
-    path_to_binary = f"./linters/python/bin/linter_{linter_version}"
-    if not os.path.exists(path_to_binary):
-        raise ValueError(f"Linter version {linter_version} does not exist in path {path_to_binary}!")
+    print(f"deploying linter instance with version {linter_version} on instance {instance_id}")
+    process, address = deploy_utils.start_fast_api_app(versions[linter_version])
 
     if scheduled_to_kill:
         print(f"killing linter with instance_id {instance_id}, to start a new one with version {linter_version}")
         kill_linter_instance(instance_id)
 
-    linter_api.set_binary(address, path_to_binary)
     linters[instance_id] = process
 
     return ExistingInstance(instance_id=instance_id, address=address, version=linter_version)

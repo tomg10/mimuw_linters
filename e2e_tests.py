@@ -47,7 +47,12 @@ class E2eTests(unittest.TestCase):
 
         E2eTests.unset_linter_debug_mode()
 
-    def restart_machine_manager_with_deploy_backend(self, deploy_backend_name):
+    def set_linter_test_aps_supported_versions(self):
+        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = "1.0:test_linter_1,2.0:test_linter_2,3.0:test_linter_3"
+        self.restart_machine_manager_with_different_params(deploy_backend_name="local")
+        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = "1.0:linter"
+
+    def restart_machine_manager_with_different_params(self, deploy_backend_name):
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
         os.environ["MACHINE_MANAGER_DEPLOY_BACKEND"] = deploy_backend_name
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
@@ -61,9 +66,9 @@ class E2eTests(unittest.TestCase):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, version, instance_id)
 
     def test_getting_linters(self):
-        self.create_linter_instances(10, "1.0")
+        self.create_linter_instances(3, "1.0")
         result = machine_manager_api.get_linters(self.machine_manager_url)
-        self.assertEqual(10, len(result))
+        self.assertEqual(3, len(result))
 
     def test_running_linter_binary_on_flawed_input(self):
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
@@ -92,6 +97,7 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(0, len(response.errors))
 
     def test_replacing_linter_with_different_nonexistent_version(self):
+        self.set_linter_test_aps_supported_versions()
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
@@ -102,16 +108,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual("1.0", linters[0].version)
 
     def test_replacing_linter_with_different_version(self):
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-        linters = machine_manager_api.get_linters(self.machine_manager_url)
-        self.assertEqual("1.0", linters[0].version)
-
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0_nonexistent", linters[0].instance_id)
-        linters = machine_manager_api.get_linters(self.machine_manager_url)
-        self.assertEqual(1, len(linters))
-        self.assertEqual("1.0", linters[0].version)
-
-    def test_replacing_linter_with_different_version(self):
+        self.set_linter_test_aps_supported_versions()
         self.create_linter_instances(1, "1.0")
         linters = machine_manager_api.get_linters(self.machine_manager_url)
         self.assertEqual("1.0", linters[0].version)
@@ -152,12 +149,6 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(0, len(response.errors))
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.debug[0])
 
-    def test_setting_path_to_linter_binary(self):
-        machine_manager_api.deploy_linter_instance(self.machine_manager_url, "1.0")
-
-        response = load_balancer_api.validate(self.load_balancer_url,
-                                              LinterRequest(language="python", code="x = 5"))
-        self.assertEqual("Current path to linter binary: ./linters/python/bin/linter_1.0", response.debug[1])
 
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
@@ -175,6 +166,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual(update_status, step)
 
     def test_update_manager_single_update(self):
+        self.set_linter_test_aps_supported_versions()
         n = 10
         v1 = "1.0"
         v2 = "2.0"
@@ -188,6 +180,7 @@ class E2eTests(unittest.TestCase):
         self.single_manager_update(n, v2, steps[-1], True)
 
     def test_update_manager_double_update(self):
+        self.set_linter_test_aps_supported_versions()
         n = 10
         v1 = "1.0"
         v2 = "2.0"
@@ -209,6 +202,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual(update_status, 0)
 
     def test_single_rollback(self):
+        self.set_linter_test_aps_supported_versions()
         n = 10
         v1 = "1.0"
         v2 = "2.0"
@@ -220,6 +214,7 @@ class E2eTests(unittest.TestCase):
         self.single_manager_rollback(v1)
 
     def test_double_rollback(self):
+        self.set_linter_test_aps_supported_versions()
         n = 10
         v1 = "1.0"
         v2 = "2.0"
@@ -236,7 +231,7 @@ class E2eTests(unittest.TestCase):
     # TODO update -> rollback -> update
 
     def test_killable_proxy_can_be_killed(self):
-        self.restart_machine_manager_with_deploy_backend(deploy_backend_name='killable_proxy')
+        self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
         linter_instance = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version='1.0')
         response = load_balancer_api.validate(self.load_balancer_url,
                                               request=LinterRequest(code='var x = a', language='python'))
@@ -248,10 +243,10 @@ class E2eTests(unittest.TestCase):
         self.assertEqual(["No linter instance was able to handle request"], response.errors)
 
     def test_two_killed_linters_do_not_cause_outages(self):
-        self.restart_machine_manager_with_deploy_backend(deploy_backend_name='killable_proxy')
+        self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
         linter_instance1 = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version='1.0')
         linter_instance2 = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version='1.0')
-        linter_instance3 = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version='1.0')
+        machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version='1.0')
         response = load_balancer_api.validate(self.load_balancer_url,
                                               request=LinterRequest(code='var x = a', language='python'))
         self.assertEqual("ok", response.result)

@@ -1,3 +1,4 @@
+import os
 import random
 import subprocess
 import signal
@@ -5,10 +6,10 @@ import signal
 import health_utils
 
 
-def start_fast_api_app(app_name):
+def start_fast_api_app(app_name, base_package=""):
     port = random.randint(10000, 20000)
     address = f"http://localhost:{port}"
-    process = subprocess.Popen(["uvicorn", f"{app_name}:{app_name}_app", f"--port={port}"])
+    process = subprocess.Popen(["uvicorn", f"{base_package}{app_name}:{app_name}_app", f"--port={port}"])
     health_utils.wait_for_healthy_state(address)
     return process, address
 

@@ -4,6 +4,7 @@ from multiprocessing import Lock
 import subprocess
 import random
 
+import simple_python_linter
 from services_addresses import get_env_or_raise
 from schema import LinterRequest, LinterResponse
 
@@ -50,20 +51,9 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     finally:
         lock.release()
 
-    # We can get a collision with another instance, but I don't think it is important (prob. is low).
-    tmp_file_name = f'tmp{random.randint(1, 1000000000)}.txt'
-    with open(tmp_file_name, "w") as f:
-        f.write(request.code)
-
-    with open(tmp_file_name, "r") as f:
-        result = subprocess.run([f"{local_linter_path_to_binary}"], text=True, stdin=f, stdout=subprocess.PIPE)
-    os.remove(tmp_file_name)
-
-    if result.returncode == 0:
-        return LinterResponse(result="ok", errors=[], debug=debug)
-
-    errors = result.stdout.strip().split('\n')
-    return LinterResponse(result="fail", errors=errors, debug=debug)
+    response = simple_python_linter.lint(request)
+    response.debug = debug
+    return response
 
 
 print("started linter instance!")
