@@ -4,6 +4,7 @@ import os
 import deploy_utils
 import linter_api
 from schema import ExistingInstance
+from fastapi import HTTPException
 
 linters = {}
 
@@ -26,7 +27,7 @@ def deploy_linter_instance(linter_version, instance_id=None):
 
     path_to_binary = f"./linters/python/bin/linter_{linter_version}"
     if not os.path.exists(path_to_binary):
-        raise ValueError(f"Linter version {linter_version} does not exist in path {path_to_binary}!")
+        raise HTTPException(status_code=400, detail=f"Linter version {linter_version} does not exist in path {path_to_binary}!")
 
     if scheduled_to_kill:
         print(f"killing linter with instance_id {instance_id}, to start a new one with version {linter_version}")

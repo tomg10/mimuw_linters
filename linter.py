@@ -16,7 +16,7 @@ linter_path_to_binary = ""
 
 @linter_app.get("/")
 def health_check() -> str:
-    return "ok linter"
+    return "ok"
 
 
 @linter_app.post("/set_binary")
@@ -34,7 +34,7 @@ def set_binary(path_to_binary: str) -> None:
 def validate_file(request: LinterRequest) -> LinterResponse:
     global responses_count
 
-    debug = []
+    test_logging = []
     local_linter_path_to_binary = ""
     try:
         lock.acquire()
@@ -42,8 +42,8 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         responses_count += 1
         local_linter_path_to_binary = linter_path_to_binary
 
-        if get_env_or_raise("LINTER_DEBUG"):
-            debug = [
+        if get_env_or_raise("LINTER_TEST_LOGGING"):
+            test_logging = [
                 f"Current responses_count: {responses_count}",
                 f"Current path to linter binary: {linter_path_to_binary}",
             ]
@@ -60,10 +60,10 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     os.remove(tmp_file_name)
 
     if result.returncode == 0:
-        return LinterResponse(result="ok", errors=[], debug=debug)
+        return LinterResponse(result="ok", errors=[], test_logging=test_logging)
 
     errors = result.stdout.strip().split('\n')
-    return LinterResponse(result="fail", errors=errors, debug=debug)
+    return LinterResponse(result="fail", errors=errors, test_logging=test_logging)
 
 
 print("started linter instance!")

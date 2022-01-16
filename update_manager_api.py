@@ -1,5 +1,4 @@
 import json
-
 import requests
 
 from schema import ExistingInstance

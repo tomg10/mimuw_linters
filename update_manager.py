@@ -14,7 +14,7 @@ STEPS = [0, 0.1, 0.5, 1]
 
 @update_manager_app.get("/")
 def get_health():
-    return "ok update_manager"
+    return "ok"
 
 
 @update_manager_app.post("/update")

@@ -1,6 +1,5 @@
 import os
 import traceback
-
 from fastapi import FastAPI
 from multiprocessing import Lock
 
@@ -14,10 +13,9 @@ lock = Lock()
 linter_number = 0
 machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
-
 @load_balancer_app.get("/")
 def health_check() -> str:
-    return "ok balancer"
+    return "ok"
 
 
 @load_balancer_app.post("/validate")
@@ -28,7 +26,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     linters.sort(key=lambda linter: linter.instance_id)
 
     if len(linters) == 0:
-        return LinterResponse(result="fail", errors=["No linter instance available"], debug=[])
+        return LinterResponse(result="fail", errors=["No linter instance available"], test_logging=[])
 
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
     for _ in range(retries_count):
@@ -46,4 +44,4 @@ def validate_file(request: LinterRequest) -> LinterResponse:
             print(traceback.format_exc())
             continue
 
-    return LinterResponse(result="fail", errors=["No linter instance was able to handle request"], debug=[])
+    return LinterResponse(result="fail", errors=["No linter instance was able to handle request"], test_logging=[])

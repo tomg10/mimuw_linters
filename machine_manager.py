@@ -2,7 +2,6 @@ import os
 import traceback
 from typing import List, Union
 from multiprocessing import Lock
-
 from fastapi import FastAPI, HTTPException
 
 import killable_proxy_deployer
@@ -16,9 +15,11 @@ linters = {}
 deploy_backend_type = os.environ.get("MACHINE_MANAGER_DEPLOY_BACKEND", "local")
 print(f"Starting machine manager with backend {deploy_backend_type}")
 
+
 @machine_manager_app.get("/")
 def get_health():
-    return "ok machine_manager"
+    return "ok"
+
 
 @machine_manager_app.get("/linters")
 def get_linters() -> List[ExistingInstance]:
@@ -30,7 +31,7 @@ def get_linters() -> List[ExistingInstance]:
 
 
 @machine_manager_app.post("/deploy-linter-version")
-def deploy_linter_version(linter_version, instance_id=None) -> Union[ExistingInstance, HTTPException]:
+def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
     try:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':
@@ -41,7 +42,7 @@ def deploy_linter_version(linter_version, instance_id=None) -> Union[ExistingIns
         return linter
     except Exception as e:
         print(traceback.format_exc())
-        return HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
+        raise HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
     finally:
         lock.release()
 
