@@ -30,4 +30,4 @@ def lint(request: LinterRequest) -> LinterResponse:
             line_number += 1
             char_number = 0
 
-    return LinterResponse(result='ok' if len(errors) == 0 else 'fail', errors=errors, debug=[])
+    return LinterResponse(result='ok' if len(errors) == 0 else 'fail', errors=errors, test_logging=[])

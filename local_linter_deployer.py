@@ -4,9 +4,7 @@ import os
 import logging
 
 import deploy_utils
-import linter_api
 from schema import ExistingInstance
-from fastapi import HTTPException
 
 logger = logging.getLogger("local_linter_deployer_logger")
 

@@ -59,7 +59,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         lock.release()
 
     response = simple_python_linter.lint(request)
-    response.debug = debug
+    response.test_logging = test_logging
     return response
 
 

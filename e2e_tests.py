@@ -54,8 +54,8 @@ class E2eTests(unittest.TestCase):
         E2eTests.unset_linter_test_logging()
 
     def set_linter_test_aps_supported_versions(self):
-        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v1 + ":test_linter_1," +
-                                                          E2eTests.v2 + ":test_linter_2," +
+        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v1 + ":test_linter_1," +\
+                                                          E2eTests.v2 + ":test_linter_2," +\
                                                           E2eTests.v3 + ":test_linter_3"
         self.restart_machine_manager_with_different_params(deploy_backend_name="local")
         os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v1 + ":linter"
@@ -225,7 +225,7 @@ class E2eTests(unittest.TestCase):
     # TODO update -> rollback -> update
 
     def test_killable_proxy_can_be_killed(self):
-        self.restart_machine_manager_with_deploy_backend(deploy_backend_name='killable_proxy')
+        self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
         linter_instance = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version=E2eTests.v1)
         response = load_balancer_api.validate(self.load_balancer_url, request=E2eTests.flawless_python_request)
         self.assertEqual("ok", response.result)
@@ -236,7 +236,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual(["No linter instance was able to handle request"], response.errors)
 
     def test_two_killed_linters_do_not_cause_outages(self):
-        self.restart_machine_manager_with_deploy_backend(deploy_backend_name='killable_proxy')
+        self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
         linter_instance1 = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version=E2eTests.v1)
         linter_instance2 = machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version=E2eTests.v1)
         machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version=E2eTests.v1)
