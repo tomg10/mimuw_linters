@@ -10,7 +10,7 @@ is_killed = False
 
 @killable_linter_proxy_app.get("/")
 def health_check() -> str:
-    return "ok linter"
+    return "ok"
 
 @killable_linter_proxy_app.post("/set-is-killed")
 def set_is_killed():
