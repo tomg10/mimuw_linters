@@ -4,8 +4,11 @@ import requests
 from schema import ExistingInstance
 
 
-def get_linters(url):
+def get_linters(url, language=None):
     full_url = f"{url}/linters"
+    if language:
+        full_url += f"?language={language}"
+
     result_raw = requests.get(full_url).json()
     return [ExistingInstance.from_json(json.dumps(elem)) for elem in result_raw]
 

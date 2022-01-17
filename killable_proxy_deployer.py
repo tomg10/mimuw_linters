@@ -31,4 +31,4 @@ def deploy_linter_instance(linter_version, instance_id=None):
     linters_proxies_urls[linter_instance.instance_id] = url
 
     return ExistingInstance(instance_id=linter_instance.instance_id, version=linter_version,
-                            address=linters_proxies_urls[linter_instance.instance_id])
+                            address=linters_proxies_urls[linter_instance.instance_id], languages=[])

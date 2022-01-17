@@ -17,6 +17,7 @@ lock = Lock()
 linter_number = 0
 machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
+
 @load_balancer_app.get("/")
 def health_check() -> str:
     return "ok"
@@ -26,11 +27,13 @@ def health_check() -> str:
 def validate_file(request: LinterRequest) -> LinterResponse:
     global linter_number
 
-    linters = machine_manager_api.get_linters(machine_manager_url)
+    linters = machine_manager_api.get_linters(machine_manager_url, request.language)
     linters.sort(key=lambda linter: linter.instance_id)
 
     if len(linters) == 0:
-        return LinterResponse(result="fail", errors=["No linter instance available"], test_logging=[])
+        return LinterResponse(result="fail",
+                              errors=[f"No linter instance available for language {request.language}."],
+                              test_logging=[])
 
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
     for retry_number in range(retries_count):

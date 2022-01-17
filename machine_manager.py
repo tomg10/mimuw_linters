@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 import logging
 from logging.config import dictConfig
 
+import linter_api
 from configs.machine_manager.logging_config import log_config
 import killable_proxy_deployer
 import local_linter_deployer
@@ -26,9 +27,12 @@ def get_health():
 
 
 @machine_manager_app.get("/linters")
-def get_linters() -> List[ExistingInstance]:
+def get_linters(language: str = None) -> List[ExistingInstance]:
     try:
         lock.acquire()
+
+        if language:
+            return list(filter(lambda instance: language in instance.languages, linters.values()))
         return list(linters.values())
     finally:
         lock.release()
@@ -42,11 +46,15 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
             linter = killable_proxy_deployer.deploy_linter_instance(linter_version, instance_id)
         else:
             linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
+
+        linter.languages = linter_api.get_supported_languages(linter.address)
         linters[linter.instance_id] = linter
+        logger.debug(f"Linter {instance_id} supports the following languages: {linter.languages}.")
+
         return linter
     except:
         logger.exception(f"Deployment of linter with version {linter_version} and instance ID {instance_id} failed.")
-        raise HTTPException(status_code=400, detail=f"Could not (re)start linter with version{linter_version}")
+        raise HTTPException(status_code=400, detail=f"Could not (re)start linter with version {linter_version}")
     finally:
         lock.release()
 
