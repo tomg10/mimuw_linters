@@ -13,11 +13,14 @@ linter_client = TestClient(linter_app)
 
 class E2eTests(unittest.TestCase):
     nonexistent_v = "1.0nonexistent"
-    v1 = "1.0"
-    v2 = "2.0"
-    v3 = "3.0"
+    v_real = "0.0"  # Python + Java
+    v1 = "1.0"  # Python
+    v2 = "2.0"  # Java
+    v3 = "3.0"  # Python + Java
     flawless_python_request = LinterRequest(language="python", code="x = 5")
     flawed_python_request = LinterRequest(language="python", code="x=5\nx =5\nx= 5")
+    flawless_java_request = LinterRequest(language="java", code="class { x = 5; }")
+    flawed_java_request = LinterRequest(language="java", code="x = 5")
 
     @staticmethod
     def set_linter_test_logging():
@@ -27,12 +30,22 @@ class E2eTests(unittest.TestCase):
     def unset_linter_test_logging():
         os.environ.pop("LINTER_TEST_LOGGING")
 
+    @staticmethod
+    def set_linter_test_aps_supported_versions():
+        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v_real + ":linter," + \
+                                                          E2eTests.v1 + ":test_linter_1," + \
+                                                          E2eTests.v2 + ":test_linter_2," + \
+                                                          E2eTests.v3 + ":test_linter_3"
+
     def setUp(self) -> None:
         E2eTests.set_linter_test_logging()
         os.environ["MACHINE_MANAGER_DEPLOY_BACKEND"] = "local"
+        E2eTests.set_linter_test_aps_supported_versions()
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
+
         os.environ["LOAD_BALANCER_MACHINE_MANAGER_URL"] = self.machine_manager_url
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
+
         self.update_manager_process, self.update_manager_url = deploy_utils.start_fast_api_app("update_manager")
         self.killable_linter_proxies = []
 
@@ -50,13 +63,6 @@ class E2eTests(unittest.TestCase):
 
         E2eTests.unset_linter_test_logging()
 
-    def set_linter_test_aps_supported_versions(self):
-        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v1 + ":test_linter_1," +\
-                                                          E2eTests.v2 + ":test_linter_2," +\
-                                                          E2eTests.v3 + ":test_linter_3"
-        self.restart_machine_manager_with_different_params(deploy_backend_name="local")
-        os.environ["LOCAL_DEPLOYER_SUPPORTED_VERSIONS"] = E2eTests.v1 + ":linter"
-
     def restart_machine_manager_with_different_params(self, deploy_backend_name):
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
         os.environ["MACHINE_MANAGER_DEPLOY_BACKEND"] = deploy_backend_name
@@ -70,7 +76,8 @@ class E2eTests(unittest.TestCase):
         for i in range(n):
             machine_manager_api.deploy_linter_instance(self.machine_manager_url, version, instance_id)
 
-    def test_opening_application_on_already_occupied_socket(self):
+    @staticmethod
+    def test_opening_application_on_already_occupied_socket():
         machine_manager_process, _ = deploy_utils.start_fast_api_app("machine_manager", port=5000)
         load_balancer_process, _ = deploy_utils.start_fast_api_app("load_balancer", port=5000)
 

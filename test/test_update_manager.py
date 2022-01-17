@@ -21,7 +21,6 @@ class UpdateManagerTests(E2eTests):
         self.assertEqual(update_status, step)
 
     def test_update_manager_single_update(self):
-        self.set_linter_test_aps_supported_versions()
         n = 10
         steps = [0.1, 0.5, 1]
 
@@ -33,7 +32,6 @@ class UpdateManagerTests(E2eTests):
         self.single_manager_update(n, E2eTests.v2, steps[-1], True)
 
     def test_update_manager_double_update(self):
-        self.set_linter_test_aps_supported_versions()
         n = 10
         steps = [0.1, 0.5, 1]
 
@@ -52,7 +50,6 @@ class UpdateManagerTests(E2eTests):
         self.assertEqual(update_status, 0)
 
     def test_single_rollback(self):
-        self.set_linter_test_aps_supported_versions()
         n = 10
         steps = [0.1, 0.5, 1]
 
@@ -62,7 +59,6 @@ class UpdateManagerTests(E2eTests):
         self.single_manager_rollback(E2eTests.v1)
 
     def test_double_rollback(self):
-        self.set_linter_test_aps_supported_versions()
         n = 10
         steps = [0.1, 0.5, 1]
 
@@ -74,7 +70,6 @@ class UpdateManagerTests(E2eTests):
         self.single_manager_rollback(E2eTests.v1)
 
     def test_update_rollback_update(self):
-        self.set_linter_test_aps_supported_versions()
         n = 2
         steps = [0.1, 0.5, 1]
 
