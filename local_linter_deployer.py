@@ -2,10 +2,13 @@ import json
 import uuid
 import os
 import logging
+from logging.config import dictConfig
 
+from configs.machine_manager.logging_config import log_config
 import deploy_utils
 from schema import ExistingInstance
 
+dictConfig(log_config)
 logger = logging.getLogger("local_linter_deployer_logger")
 
 linters = {}

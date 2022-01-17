@@ -1,5 +1,5 @@
 import os
-from typing import List, Union
+from typing import List
 from multiprocessing import Lock
 from fastapi import FastAPI, HTTPException
 import logging

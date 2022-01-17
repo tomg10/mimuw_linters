@@ -1,10 +1,13 @@
 import logging
+from logging.config import dictConfig
 
+from configs.machine_manager.logging_config import log_config
 import deploy_utils
 import killable_linter_proxy_api
 import local_linter_deployer
 from schema import ExistingInstance
 
+dictConfig(log_config)
 logger = logging.getLogger("killable_proxy_deployer_logger")
 
 linters_proxies = {}
