@@ -16,6 +16,10 @@ is_killed = False
 
 @killable_linter_proxy_app.get("/")
 def health_check() -> str:
+    global is_killed
+
+    if is_killed:
+        return "fail"
     return "ok"
 
 
