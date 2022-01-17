@@ -53,7 +53,6 @@ def do_health_check():
         finally:
             lock.release()
 
-
 def hearthbeat(linter):
     global failures
 
