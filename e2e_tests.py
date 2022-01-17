@@ -123,7 +123,7 @@ class E2eTests(unittest.TestCase):
         self.assertEqual(1, len(response.errors))
         self.assertEqual("Missing class keyword in the program!", response.errors[0])
 
-    def test_running_one_linter_on_two_supported_languages(self):
+    def test_running_two_supported_lanugages_on_one_linter(self):
         self.create_linter_instances(1, E2eTests.v_real)
 
         response = load_balancer_api.validate(self.load_balancer_url, E2eTests.flawless_python_request)
