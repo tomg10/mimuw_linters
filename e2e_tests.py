@@ -155,16 +155,16 @@ class E2eTests(unittest.TestCase):
             self.assertEqual(f"Current responses_count: {i // 10 + 1}", response.test_logging[0])
 
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
-        response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
+        if last_step:
+            with self.assertRaises(Exception):
+                update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
+        else:
+            response = update_manager_api.update(self.update_manager_url, self.machine_manager_url, version)
+            self.assertEqual(response, "ok")
+
         machines = machine_manager_api.get_linters(self.machine_manager_url)
         how_many_updated = len(list(filter(lambda machine: machine.version >= version, machines)))
         update_status = update_manager_api.status(self.update_manager_url, version)
-
-        if last_step:
-            self.assertEqual(response["status_code"], 400)
-            self.assertEqual(response["detail"], "Update already finished")
-        else:
-            self.assertEqual(response, "ok")
 
         self.assertEqual(round(n * step), how_many_updated)
         self.assertEqual(update_status, step)
@@ -222,7 +222,20 @@ class E2eTests(unittest.TestCase):
         self.single_manager_update(n, E2eTests.v3, steps[0])
         self.single_manager_rollback(E2eTests.v1)
 
-    # TODO update -> rollback -> update
+    def test_update_rollback_update(self):
+        self.set_linter_test_aps_supported_versions()
+        n = 2
+        steps = [0.1, 0.5, 1]
+
+        self.create_linter_instances(n, E2eTests.v1)
+
+        for step in steps:
+            self.single_manager_update(n, E2eTests.v2, step)
+
+        self.single_manager_rollback(E2eTests.v1)
+
+        for step in steps:
+            self.single_manager_update(n, E2eTests.v2, step)
 
     def test_killable_proxy_can_be_killed(self):
         self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
