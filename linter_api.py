@@ -10,5 +10,6 @@ def validate(url, request: LinterRequest, timeout: int = 1) -> LinterResponse:
     return LinterResponse.from_json(json.dumps(response))
 
 
-def set_binary(url, path_to_binary: str):
-    return requests.post(f"{url}/set_binary?path_to_binary={path_to_binary}").json()
+def get_supported_languages(url) -> [str]:
+    response = requests.get(f"{url}/supported_languages").json()
+    return response

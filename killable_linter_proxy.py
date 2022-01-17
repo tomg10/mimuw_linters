@@ -32,6 +32,15 @@ def set_linter_url(linter_url):
     logger.info(f"Real linter url set: {real_linter_url}")
 
 
+@killable_linter_proxy_app.get("/supported_languages")
+def get_supported_languages() -> [str]:
+    if is_killed:
+        raise Exception("This linter is not working!")
+    if real_linter_url is None:
+        raise Exception("Real linter url is not set!")
+    return linter_api.get_supported_languages(url=real_linter_url)
+
+
 @killable_linter_proxy_app.post("/validate")
 def validate_file(request: LinterRequest) -> LinterResponse:
     if is_killed:

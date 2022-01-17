@@ -24,3 +24,4 @@ class ExistingInstance:
     instance_id: str
     address: str
     version: str
+    languages: List[str]

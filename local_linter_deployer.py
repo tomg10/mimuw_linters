@@ -13,7 +13,7 @@ logger = logging.getLogger("local_linter_deployer_logger")
 
 linters = {}
 
-versions_string = os.environ.get("LOCAL_DEPLOYER_SUPPORTED_VERSIONS", "1.0:linter")
+versions_string = os.environ.get("LOCAL_DEPLOYER_SUPPORTED_VERSIONS", "0.0:linter")
 versions = {}
 for version in versions_string.split(','):
     versions[version.split(":")[0]] = version.split(":")[1]
@@ -45,4 +45,4 @@ def deploy_linter_instance(linter_version, instance_id=None):
 
     linters[instance_id] = process
 
-    return ExistingInstance(instance_id=instance_id, address=address, version=linter_version)
+    return ExistingInstance(instance_id=instance_id, address=address, version=linter_version, languages=[])

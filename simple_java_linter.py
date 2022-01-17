@@ -30,4 +30,7 @@ def lint(request: LinterRequest) -> LinterResponse:
             line_number += 1
             char_number = 0
 
+    if "class" not in program:
+        errors.append("Missing class keyword in the program!")
+
     return LinterResponse(result='ok' if len(errors) == 0 else 'fail', errors=errors, test_logging=[])
