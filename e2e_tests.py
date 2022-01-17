@@ -1,8 +1,10 @@
+import time
 import unittest
 import os
 from fastapi.testclient import TestClient
 
 import deploy_utils
+import health_check_api
 import killable_linter_proxy_api
 import linter_api
 import update_manager_api
@@ -24,6 +26,8 @@ class E2eTests(unittest.TestCase):
     flawed_python_request = LinterRequest(language="python", code="x=5\nx =5\nx= 5")
     flawless_java_request = LinterRequest(language="java", code="class { x = 5; }")
     flawed_java_request = LinterRequest(language="java", code="x = 5")
+    health_check_timeout = 0.5
+    health_check_repetition_period = 1.2
 
     @staticmethod
     def set_linter_test_logging():
@@ -65,6 +69,16 @@ class E2eTests(unittest.TestCase):
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
 
         E2eTests.unset_linter_test_logging()
+
+    def start_health_check(self):
+        os.environ["HEALTH_CHECK_TIMEOUT"] = str(E2eTests.health_check_timeout)
+        os.environ["HEALTH_CHECK_REPETITION_PERIOD"] = str(E2eTests.health_check_repetition_period)
+        self.hc_process, self.hc_url = deploy_utils.start_fast_api_app("health_check")
+
+    def stop_health_check(self):
+        deploy_utils.stop_fast_api_app(self.hc_process)
+        os.environ.pop("HEALTH_CHECK_TIMEOUT")
+        os.environ.pop("HEALTH_CHECK_REPETITION_PERIOD")
 
     def restart_machine_manager_with_different_params(self, deploy_backend_name):
         deploy_utils.stop_fast_api_app(self.machine_manager_process)
@@ -323,6 +337,47 @@ class E2eTests(unittest.TestCase):
 
         deploy_utils.stop_fast_api_app(machine_manager_process)
         deploy_utils.stop_fast_api_app(load_balancer_process)
+
+    def test_health_check_when_linters_work(self):
+        try:
+            self.create_linter_instances(2, E2eTests.v1)
+            self.start_health_check()
+
+            time.sleep(E2eTests.health_check_timeout * 2 + E2eTests.health_check_repetition_period)
+            self.assertEqual(0, health_check_api.get_failures(self.hc_url))
+        finally:
+            self.stop_health_check()
+
+    def test_health_check_when_one_linter_doesnt_work(self):
+        try:
+            self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
+            linter_instance1 = machine_manager_api.deploy_linter_instance(self.machine_manager_url,
+                                                                          linter_version=E2eTests.v_real)
+            machine_manager_api.deploy_linter_instance(self.machine_manager_url, linter_version=E2eTests.v_real)
+            killable_linter_proxy_api.set_is_killed(linter_instance1.address)
+
+            self.start_health_check()
+
+            time.sleep(E2eTests.health_check_timeout * 2 + E2eTests.health_check_repetition_period)
+            self.assertEqual(1, health_check_api.get_failures(self.hc_url))
+        finally:
+            self.stop_health_check()
+
+    def test_health_check_restarts_linter_when_dead(self):
+        try:
+            self.restart_machine_manager_with_different_params(deploy_backend_name='killable_proxy')
+            linter_instance1 = machine_manager_api.deploy_linter_instance(self.machine_manager_url,
+                                                                          linter_version=E2eTests.v_real)
+            killable_linter_proxy_api.set_is_killed(linter_instance1.address)
+
+            self.start_health_check()
+
+            time.sleep(E2eTests.health_check_timeout * 2 + E2eTests.health_check_repetition_period)
+            for i in range(2):
+                response = load_balancer_api.validate(self.load_balancer_url, request=E2eTests.flawless_python_request)
+                self.assertEqual("ok", response.result)
+        finally:
+            self.stop_health_check()
 
 
 if __name__ == "__main__":
