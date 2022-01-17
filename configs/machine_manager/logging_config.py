@@ -24,6 +24,11 @@ log_config = {
             "formatter": "main",
             "filename": "logs/killable_proxy_deployer.log",
         },
+        "gcp_linter_deployer": {
+            "class": "logging.FileHandler",
+            "formatter": "main",
+            "filename": "logs/gcp_linter_deployer.log",
+        },
     },
     "loggers": {
         "machine_manager_logger": {
@@ -38,6 +43,10 @@ log_config = {
             "level": "DEBUG",
             "handlers": ["killable_proxy_deployer"],
         },
+        "gcp_linter_deployer_logger": {
+            "level": "DEBUG",
+            "handlers": ["killable_proxy_deployer"],
+        }
     },
     "disable_existing_loggers": False,
 }

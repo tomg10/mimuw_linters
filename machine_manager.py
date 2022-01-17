@@ -44,8 +44,10 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':
             linter = killable_proxy_deployer.deploy_linter_instance(linter_version, instance_id)
-        else:
+        elif deploy_backend_type == 'local':
             linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
+        elif deploy_backend_type == "gcp":
+            linter = gcp_linter_deployer.deploy_linter_instance(linter_version, instance_id)
 
         linter.languages = linter_api.get_supported_languages(linter.address)
         linters[linter.instance_id] = linter

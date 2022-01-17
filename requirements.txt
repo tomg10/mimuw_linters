@@ -3,3 +3,5 @@ uvicorn
 fastapi
 fastapi_utils
 dataclasses_json
+google-cloud-compute
+google-cloud-storage
