@@ -21,5 +21,5 @@ It starts a `uvicorn` application on a localhost with port 5000.
 To run *current* tests run the following command from the main directory (from virtual environment):
 
 ```shell
-python e2e_tests.py
+python -m unittest
 ```
