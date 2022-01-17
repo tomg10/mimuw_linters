@@ -1,6 +1,7 @@
-from .test_e2e import E2eTests
+from test_e2e import E2eTests
 import load_balancer_api
 import unittest
+from schema import LinterRequest
 
 
 class LoadBalancerTests(E2eTests):

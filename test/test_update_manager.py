@@ -1,4 +1,4 @@
-from .test_e2e import E2eTests
+from test_e2e import E2eTests
 import update_manager_api
 import machine_manager_api
 import unittest

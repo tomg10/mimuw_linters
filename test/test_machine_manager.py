@@ -1,4 +1,4 @@
-from .test_e2e import E2eTests
+from test_e2e import E2eTests
 import machine_manager_api
 import load_balancer_api
 import killable_linter_proxy_api
