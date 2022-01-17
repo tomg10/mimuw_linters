@@ -4,15 +4,15 @@ import signal
 import socket
 import health_utils
 
-
 # https://stackoverflow.com/a/52872579
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
 
 
-def start_fast_api_app(app_name, base_package=""):
-    port = random.randint(10000, 20000)
+def start_fast_api_app(app_name, base_package="", port: int = None):
+    if port is None:
+        port = random.randint(10000, 20000)
     while is_port_in_use(port):
         port = random.randint(10000, 20000)
 
