@@ -381,6 +381,17 @@ class E2eTests(unittest.TestCase):
                 self.assertEqual("ok", response.result)
 
             self.assertEqual(1, health_check_api.get_failures(self.hc_url))
+
+            [linter_instance1] = machine_manager_api.get_linters(self.machine_manager_url)
+            killable_linter_proxy_api.set_is_killed(linter_instance1.address)
+
+            killable_linter_proxy_api.set_is_killed(linter_instance1.address)
+            time.sleep(E2eTests.health_check_timeout * 2 + E2eTests.health_check_repetition_period)
+            for i in range(2):
+                response = load_balancer_api.validate(self.load_balancer_url, request=E2eTests.flawless_python_request)
+                self.assertEqual("ok", response.result)
+
+            self.assertEqual(2, health_check_api.get_failures(self.hc_url))
         finally:
             self.stop_health_check()
 
