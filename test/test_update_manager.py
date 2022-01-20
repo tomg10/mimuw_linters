@@ -1,10 +1,19 @@
 from test_e2e import E2eTests
 import update_manager_api
 import machine_manager_api
+import deploy_utils
 import unittest
 
 
 class UpdateManagerTests(E2eTests):
+    def setUp(self) -> None:
+        super(UpdateManagerTests, self).setUp()
+        self.update_manager_process, self.update_manager_url = deploy_utils.start_fast_api_app("update_manager")
+
+    def tearDown(self) -> None:
+        deploy_utils.stop_fast_api_app(self.update_manager_process)
+        super(UpdateManagerTests, self).tearDown()
+
     def single_manager_update(self, n: int, version: str, step: float, last_step: bool = False):
         if last_step:
             with self.assertRaises(Exception):
