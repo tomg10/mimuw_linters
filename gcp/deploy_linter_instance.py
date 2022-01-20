@@ -1,10 +1,7 @@
-from google.cloud import storage
-from config import bucket_name
+import subprocess
 
-storage_client = storage.Client()
-bucket = storage_client.bucket(bucket_name)
 
-linter_image = bucket.blob(source_blob_name) #TODO
-linter_image.download_to_filename(destination_file_name) #TODO
+subprocess.run("docker pull eu.gcr.io/mimuw-linters/linter_image_1.0", shell=True)
+subprocess.run("docker run -dp 5000:5000 eu.gcr.io/mimuw-linters/linter_image_1.0", shell=True)
 
 #TODO run docker

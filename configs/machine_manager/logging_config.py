@@ -45,7 +45,7 @@ log_config = {
         },
         "gcp_linter_deployer_logger": {
             "level": "DEBUG",
-            "handlers": ["killable_proxy_deployer"],
+            "handlers": ["gcp_linter_deployer"],
         }
     },
     "disable_existing_loggers": False,
