@@ -1,6 +1,8 @@
 import subprocess
 import logging
 from logging.config import dictConfig
+
+import health_utils
 from gcp import config as gcp_config
 from google.cloud import compute_v1
 
@@ -25,6 +27,17 @@ def create_machine(machine_name):
     logger.info(f"Finished creating machine with name {machine_name}."
                 f"\nStdout: {completed_process.stdout}\nStderr: {completed_process.stderr}")
 
+    client = compute_v1.InstancesClient()
+    for _ in range(30):
+        try:
+            instance = client.get(project=gcp_config.project_id, zone=gcp_config.zone, instance=machine_name, timeout=4)
+            return instance.network_interfaces[0].network_i_p
+        except:
+            logger.exception(f"Exception during querying new machine {machine_name} for ip address.")
+            pass
+
+    raise Exception(f"New machine {machine_name} is not responding!")
+
 
 def delete_machine(machine_name):
     # Taken from: https://cloud.google.com/compute/docs/instances/deleting-instance#python
@@ -34,10 +47,15 @@ def delete_machine(machine_name):
         project=gcp_config.project_id, zone=gcp_config.zone, instance=machine_name
     )
 
+    waiting_count = gcp_config.killing_machine_waiting_count
     while operation.status != compute_v1.Operation.Status.DONE:
         operation = operation_client.wait(
             operation=operation.name, zone=gcp_config.zone, project=gcp_config.project_id
         )
+
+        waiting_count -= 1
+        if waiting_count == 0:
+            break
 
     if operation.error:
         logger.error(f"Error during deletion: {operation.error}")
@@ -47,16 +65,20 @@ def delete_machine(machine_name):
 
 
 def run_remote_command(machine_name, command):
-    completed_process = subprocess.run(f"gcloud compute ssh --zone {gcp_config.zone} "
-                                       f"{gcp_config.gcp_user}@{machine_name} --command '{command}'",
-                                       shell=True,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+    completed_process = None
+    for _ in range(gcp_config.ssh_retries_count):
+        completed_process = subprocess.run(f"gcloud compute ssh --zone {gcp_config.zone} "
+                                           f"{gcp_config.gcp_user}@{machine_name} --command '{command}'",
+                                           shell=True,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+        if "Connection refused" not in completed_process.stderr.decode("utf-8"):
+            break
 
     return completed_process.stdout, completed_process.stderr
 
 
-def start_linter(machine_name, linter_version, port):
+def start_linter(machine_ip, machine_name, linter_version, port):
     linter_image = f"{gcp_config.images_repo}/{gcp_config.linter_image_prefix}_{linter_version}"
 
     stdout, stderr = run_remote_command(machine_name, f"docker pull {linter_image}")
@@ -64,12 +86,15 @@ def start_linter(machine_name, linter_version, port):
                 f"\nStdout: {stdout}"
                 f"\nStderr: {stderr}")
 
-    stdout, stderr = run_remote_command(machine_name, f"docker run -dp 5000:{port} {linter_image}")
+    stdout, stderr = run_remote_command(machine_name, f"docker run -dp {port}:{port} --stop-signal SIGINT {linter_image} {port}")
     logger.info(f"Linter start initiated for version {linter_version} on machine {machine_name}."
                 f"\nStdout: {stdout}"
                 f"\nStderr: {stderr}")
 
-    return stdout.decode("utf-8").strip()  # Container ID
+    container_id = stdout.decode("utf-8").strip()
+    health_utils.wait_for_healthy_state(f"http://{machine_ip}:{port}", 1)
+
+    return container_id
 
 
 def kill_linter(machine_name, container_id):
