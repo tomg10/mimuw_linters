@@ -15,7 +15,7 @@ logger = logging.getLogger("health_check_logger")
 health_check_app = FastAPI()
 lock = Lock()
 
-machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
+machine_manager_url = os.environ.get("HEALTH_CHECK_MACHINE_MANAGER_URL")
 failures = 0
 
 timeout = hearthbeat_config.timeout
