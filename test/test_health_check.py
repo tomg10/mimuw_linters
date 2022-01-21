@@ -23,6 +23,7 @@ class HealthCheckTests(E2eTests):
         os.environ["HEALTH_CHECK_TIMEOUT"] = str(HealthCheckTests.health_check_timeout)
         os.environ["HEALTH_CHECK_REPETITION_PERIOD"] = str(HealthCheckTests.health_check_repetition_period)
         os.environ["HEALTH_CHECK_MACHINE_MANAGER_URL"] = self.machine_manager_url
+
         self.hc_process, self.hc_url = deploy_utils.start_fast_api_app("health_check")
         time.sleep(2)
 
