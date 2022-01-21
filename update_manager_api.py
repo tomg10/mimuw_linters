@@ -1,7 +1,4 @@
-import json
 import requests
-
-from schema import ExistingInstance
 
 
 def update(url, machine_manager_url, version):

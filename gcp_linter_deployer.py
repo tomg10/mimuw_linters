@@ -11,8 +11,8 @@ import gcp_utils
 dictConfig(log_config)
 logger = logging.getLogger("gcp_linter_deployer_logger")
 
-linters = {}
-machines = {}
+linters = {}  # instance_id -> (machine_name, docker_container_id)
+machines = {}  # machine_name -> [machine_ip, number_of_linters_on_machine]
 next_machine_number = 1
 
 
@@ -32,7 +32,7 @@ def kill_linter_instance(instance_id):
         machines.pop(machine_name)
 
 
-def find_or_create_free_machine():
+def find_or_create_free_machine(instance_id):
     global next_machine_number
 
     for name, info in machines.items():
@@ -57,8 +57,9 @@ def deploy_linter_instance(linter_version, instance_id=None):
         scheduled_to_kill = True
 
     logger.info(f"deploying linter instance with version {linter_version} on instance {instance_id}")
-    ip, name = find_or_create_free_machine()
-    port = random.randint(10000, 20000)  # TODO Change to while port in use loop!
+    ip, name = find_or_create_free_machine(instance_id)
+    logger.debug(f"deploying linter on machine {machines}")
+    port = random.randint(10000, 20000)
     container_id = gcp_utils.start_linter(ip, name, linter_version, port)
 
     machines[name][1] += 1

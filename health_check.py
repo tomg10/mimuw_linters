@@ -53,17 +53,23 @@ def do_health_check():
         finally:
             lock.release()
 
+
 def hearthbeat(linter):
     global failures
 
-    response = requests.get(f"{linter.address}/", timeout=timeout).json()
-    if response != "ok":
-        failures += 1
-        logger.info(f"Restarting linter {linter.instance_id} at address {linter.address} because got response "
-                    f"{response}. Current failure count: {failures}")
+    response = None
+    try:
+        response = requests.get(f"{linter.address}/", timeout=timeout).json()
+    except:
+        logger.exception(f"Hearthbeat got exception during health check of liner at address {linter.address}")
+    finally:
+        if response != "ok":
+            failures += 1
+            logger.info(f"Restarting linter {linter.instance_id} at address {linter.address} because got response "
+                        f"{response}. Current failure count: {failures}")
 
-        # This will restart the linter.
-        machine_manager_api.deploy_linter_instance(machine_manager_url, linter.version, linter.instance_id)
+            # This will restart the linter.
+            machine_manager_api.deploy_linter_instance(machine_manager_url, linter.version, linter.instance_id)
 
 
 logger.debug("Health check service started.")
