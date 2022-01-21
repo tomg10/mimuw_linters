@@ -57,7 +57,7 @@ def deploy_linter_instance(linter_version, instance_id=None):
         scheduled_to_kill = True
 
     logger.info(f"deploying linter instance with version {linter_version} on instance {instance_id}")
-    ip, name = find_or_create_free_machine(instance_id)
+    ip, name = find_or_create_free_machine()
     logger.debug(f"deploying linter on machine {machines}")
     port = random.randint(10000, 20000)
     container_id = gcp_utils.start_linter(ip, name, linter_version, port)
