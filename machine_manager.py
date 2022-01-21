@@ -9,6 +9,7 @@ import linter_api
 from configs.machine_manager.logging_config import log_config
 import killable_proxy_deployer
 import local_linter_deployer
+import gcp_linter_deployer
 from schema import ExistingInstance
 
 dictConfig(log_config)
@@ -44,12 +45,14 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':
             linter = killable_proxy_deployer.deploy_linter_instance(linter_version, instance_id)
-        else:
+        elif deploy_backend_type == 'local':
             linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
+        elif deploy_backend_type == "gcp":
+            linter = gcp_linter_deployer.deploy_linter_instance(linter_version, instance_id)
 
         linter.languages = linter_api.get_supported_languages(linter.address)
         linters[linter.instance_id] = linter
-        logger.debug(f"Linter {instance_id} supports the following languages: {linter.languages}.")
+        logger.debug(f"Linter {linter.instance_id} supports the following languages: {linter.languages}.")
 
         return linter
     except:
@@ -65,8 +68,11 @@ def kill_linter_instance(instance_id) -> None:
         lock.acquire()
         if deploy_backend_type == 'killable_proxy':
             killable_proxy_deployer.kill_linter_instance(instance_id)
-        else:
+        elif deploy_backend_type == 'local':
             local_linter_deployer.kill_linter_instance(instance_id)
+        elif deploy_backend_type == "gcp":
+            gcp_linter_deployer.kill_linter_instance(instance_id)
+
         linters.pop(instance_id)
     finally:
         lock.release()
