@@ -4,6 +4,7 @@ import signal
 import socket
 import health_utils
 
+
 # https://stackoverflow.com/a/52872579
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
