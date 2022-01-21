@@ -42,6 +42,7 @@ class E2eTests(unittest.TestCase):
         os.environ["MACHINE_MANAGER_DEPLOY_BACKEND"] = "local"
         E2eTests.set_linter_test_aps_supported_versions()
         self.machine_manager_process, self.machine_manager_url = deploy_utils.start_fast_api_app("machine_manager")
+        print(self.machine_manager_url)
 
         os.environ["LOAD_BALANCER_MACHINE_MANAGER_URL"] = self.machine_manager_url
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
