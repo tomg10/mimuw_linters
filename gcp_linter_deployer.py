@@ -32,7 +32,7 @@ def kill_linter_instance(instance_id):
         machines.pop(machine_name)
 
 
-def find_or_create_free_machine(instance_id):
+def find_or_create_free_machine():
     global next_machine_number
 
     for name, info in machines.items():
