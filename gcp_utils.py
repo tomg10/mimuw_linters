@@ -98,8 +98,8 @@ def start_linter(machine_ip, machine_name, linter_version, port):
 
 
 def kill_linter(machine_name, container_id):
-    stdout, stderr = run_remote_command(machine_name, f"docker kill --signal SIGINT {container_id}")
-    logger.info(f"Linter killed command issued for container id {container_id} on machine {machine_name}."
+    stdout, stderr = run_remote_command(machine_name, f"docker stop {container_id}")
+    logger.info(f"Linter kill command issued for container id {container_id} on machine {machine_name}."
                 f"\nStdout: {stdout}"
                 f"\nStderr: {stderr}")
 
