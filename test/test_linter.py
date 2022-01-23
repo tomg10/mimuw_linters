@@ -45,6 +45,16 @@ class LinterTests(E2eTests):
         self.assertEqual("ok", response.result)
         self.assertEqual(0, len(response.errors))
 
+    def test_linter_on_unknown_language(self):
+        self.create_linter_instances(1, E2eTests.v_real)
+        request = LinterRequest(language="Ruby", code=E2eTests.flawless_python_request.code)
+        response = load_balancer_api.validate(self.load_balancer_url, request)
+
+        self.assertEqual("fail", response.result)
+        self.assertEqual(1, len(response.errors))
+        self.assertEqual("No linter instance available for language Ruby.", response.errors[0])
+
+
 
 if __name__ == "__main__":
     unittest.main()
