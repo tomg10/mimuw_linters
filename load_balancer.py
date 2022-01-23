@@ -53,7 +53,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         lock.release()
 
         try:
-            return linter_api.validate(linters[local_linter_number - 1].address, request)
+            return linter_api.validate(linters[local_linter_number].address, request)
         except:
             logger.exception("Load balancer did not get a response from linter. Number of try: %d", retry_number + 1)
             continue
