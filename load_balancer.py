@@ -15,9 +15,9 @@ load_balancer_app = FastAPI()
 lock = Lock()
 
 linter_number = 0
-if "LOAD_BALANCER_MACHINE_MANAGER_URL" in os.environ:
-    logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment")
 
+if "LOAD_BALANCER_MACHINE_MANAGER_URL" not in os.environ:
+    logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment")
 machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
 
@@ -30,7 +30,6 @@ def health_check() -> str:
 def validate_file(request: LinterRequest) -> LinterResponse:
     global linter_number
 
-    print("machine_manager_url", machine_manager_url)
     if not machine_manager_url:
         logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment")
         raise HTTPException(status_code=400, detail=f"LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment")

@@ -47,9 +47,14 @@ class LoadBalancerTests(E2eTests):
         os.environ.pop("LOAD_BALANCER_MACHINE_MANAGER_URL")
         self.load_balancer_process, self.load_balancer_url = deploy_utils.start_fast_api_app("load_balancer")
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as cm:
             load_balancer_api.validate(self.load_balancer_url,
                                        E2eTests.flawless_python_request)
+
+        self.assertEqual(
+            "Error in update_manager: {'detail': \"LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment\"}",
+            str(cm.exception)
+        )
 
 
 if __name__ == "__main__":
