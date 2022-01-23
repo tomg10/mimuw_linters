@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException
 from multiprocessing import Lock
 import logging
@@ -7,7 +8,6 @@ from configs.linters.logging_config import log_config
 import simple_python_linter
 import simple_java_linter
 import simple_c_linter
-from services_addresses import get_env_or_raise
 from schema import LinterRequest, LinterResponse
 
 dictConfig(log_config)
@@ -39,7 +39,7 @@ def validate_file(request: LinterRequest) -> LinterResponse:
         responses_count += 1
         logger.debug(f"Response count now at {responses_count}.")
 
-        if get_env_or_raise("LINTER_TEST_LOGGING"):
+        if os.environ.get("LINTER_TEST_LOGGING", "false") == "true":
             test_logging = [
                 f"Current responses_count: {responses_count}",
             ]
