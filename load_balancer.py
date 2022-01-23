@@ -14,7 +14,7 @@ logger = logging.getLogger("load_balancer_logger")
 load_balancer_app = FastAPI()
 lock = Lock()
 
-linter_number = 0
+linter_number = -1
 
 if "LOAD_BALANCER_MACHINE_MANAGER_URL" not in os.environ:
     logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment at load balancer startup")
@@ -45,15 +45,16 @@ def validate_file(request: LinterRequest) -> LinterResponse:
     retries_count = int(os.environ.get("LOAD_BALANCER_RETRIES_COUNT", 3))
     for retry_number in range(retries_count):
         lock.acquire()
-        local_linter_number = linter_number
 
         linter_number += 1
         if linter_number >= len(linters):
             linter_number = 0
+        local_linter_number = linter_number
+
         lock.release()
 
         try:
-            return linter_api.validate(linters[local_linter_number - 1].address, request)
+            return linter_api.validate(linters[local_linter_number].address, request)
         except:
             logger.exception("Load balancer did not get a response from linter. Number of try: %d", retry_number + 1)
             continue

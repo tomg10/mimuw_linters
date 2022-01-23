@@ -16,6 +16,7 @@ dictConfig(log_config)
 logger = logging.getLogger("machine_manager_logger")
 machine_manager_app = FastAPI()
 lock = Lock()
+reading_lock = Lock()
 
 linters = {}
 deploy_backend_type = os.environ.get("MACHINE_MANAGER_DEPLOY_BACKEND", "local")
@@ -30,13 +31,13 @@ def get_health():
 @machine_manager_app.get("/linters")
 def get_linters(language: str = None) -> List[ExistingInstance]:
     try:
-        lock.acquire()
+        reading_lock.acquire()
 
         if language:
             return list(filter(lambda instance: language in instance.languages, linters.values()))
         return list(linters.values())
     finally:
-        lock.release()
+        reading_lock.release()
 
 
 @machine_manager_app.post("/deploy-linter-version")
@@ -51,10 +52,15 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
             linter = gcp_linter_deployer.deploy_linter_instance(linter_version, instance_id)
 
         linter.languages = linter_api.get_supported_languages(linter.address)
-        linters[linter.instance_id] = linter
-        logger.debug(f"Linter {linter.instance_id} supports the following languages: {linter.languages}.")
 
-        return linter
+        try:
+            reading_lock.acquire()
+            linters[linter.instance_id] = linter
+            logger.debug(f"Linter {linter.instance_id} supports the following languages: {linter.languages}.")
+
+            return linter
+        finally:
+            reading_lock.release()
     except:
         logger.exception(f"Deployment of linter with version {linter_version} and instance ID {instance_id} failed.")
         raise HTTPException(status_code=400, detail=f"Could not (re)start linter with version {linter_version}")
@@ -73,6 +79,10 @@ def kill_linter_instance(instance_id) -> None:
         elif deploy_backend_type == "gcp":
             gcp_linter_deployer.kill_linter_instance(instance_id)
 
-        linters.pop(instance_id)
+        try:
+            reading_lock.acquire()
+            linters.pop(instance_id)
+        finally:
+            reading_lock.release()
     finally:
         lock.release()
