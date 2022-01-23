@@ -56,7 +56,7 @@ class LinterTests(E2eTests):
 
     def test_special_characters_in_request(self):
         self.create_linter_instances(1, E2eTests.v_real)
-        request = LinterRequest(language="python", code="e!@#$%%^&*( = 5")
+        request = LinterRequest(language="python", code="e<!@#$%%^&*(> = 5")
         response = load_balancer_api.validate(self.load_balancer_url, request)
 
         self.assertEqual("ok", response.result)
