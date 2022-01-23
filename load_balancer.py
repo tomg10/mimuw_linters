@@ -17,7 +17,7 @@ lock = Lock()
 linter_number = 0
 
 if "LOAD_BALANCER_MACHINE_MANAGER_URL" not in os.environ:
-    logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment")
+    logger.exception("LOAD_BALANCER_MACHINE_MANAGER_URL doesn't exist in environment at load balancer startup")
 machine_manager_url = os.environ.get("LOAD_BALANCER_MACHINE_MANAGER_URL")
 
 
