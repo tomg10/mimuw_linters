@@ -71,4 +71,7 @@ def deploy_linter_instance(linter_version, instance_id=None):
 
     linters[instance_id] = (name, container_id)
 
-    return ExistingInstance(instance_id=instance_id, address=f"http://{ip}:{port}", version=linter_version, languages=[])
+    return ExistingInstance(instance_id=instance_id,
+                            address=f"http://{ip}:{port}",
+                            version=linter_version,
+                            languages=[])

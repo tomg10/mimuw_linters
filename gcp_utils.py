@@ -86,7 +86,8 @@ def start_linter(machine_ip, machine_name, linter_version, port):
                 f"\nStdout: {stdout}"
                 f"\nStderr: {stderr}")
 
-    stdout, stderr = run_remote_command(machine_name, f"docker run -dp {port}:{port} --stop-signal SIGINT {linter_image} {port}")
+    stdout, stderr = run_remote_command(machine_name,
+                                        f"docker run -dp {port}:{port} --stop-signal SIGINT {linter_image} {port}")
     logger.info(f"Linter start initiated for version {linter_version} on machine {machine_name}."
                 f"\nStdout: {stdout}"
                 f"\nStderr: {stderr}")

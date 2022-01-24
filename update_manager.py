@@ -38,8 +38,8 @@ def update(machine_manager_url: str, version: str):
         machines_len = len(machines_list)
 
         next_progress = STEPS[current_step + 1]
-        newer_machines = list(filter(lambda machine: machine.version >= version, machines_list))
-        older_machines = list(filter(lambda machine: machine.version < version, machines_list))
+        newer_machines = list(filter(lambda mach: mach.version >= version, machines_list))
+        older_machines = list(filter(lambda mach: mach.version < version, machines_list))
 
         all_to_update = round(next_progress * machines_len)
         already_updated = len(newer_machines)
@@ -66,7 +66,7 @@ def rollback(machine_manager_url: str, version: str):
         # Random machines list to not make any assumption about list of machines, can be commented
         random.shuffle(machines_list)
 
-        newer_machines = list(filter(lambda machine: machine.version > version, machines_list))
+        newer_machines = list(filter(lambda mach: mach.version > version, machines_list))
 
         for machine in newer_machines:
             logger.debug(f"rollback machine: {machine.instance_id}")
