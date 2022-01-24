@@ -1,6 +1,6 @@
-requests
+requests~=2.26.0
 uvicorn
-fastapi
+fastapi~=0.70.1
 fastapi_utils
 dataclasses_json
 google-cloud-compute

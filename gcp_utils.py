@@ -13,16 +13,26 @@ logger = logging.getLogger("gcp_linter_deployer_logger")
 
 
 def create_machine(machine_name):
-    completed_process = subprocess.run(f"gcloud compute instances create {machine_name} --project={gcp_config.project_id}"
-                                       f" --zone={gcp_config.zone} --machine-type=f1-micro --network-interface=network-tier=PREMIUM,"
-                                       "subnet=default --maintenance-policy=MIGRATE"
-                                       " --service-account=mimuw-linters-auth@mimuw-linters.iam.gserviceaccount.com"
-                                       " --scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server"
+    completed_process = subprocess.run(f"gcloud compute instances create {machine_name}"
+                                       f" --project={gcp_config.project_id}"
+                                       f" --zone={gcp_config.zone}"
+                                       f" --machine-type=f1-micro"
+                                       f" --network-interface=network-tier=PREMIUM,subnet=default"
+                                       f" --maintenance-policy=MIGRATE"
+                                       f" --service-account=mimuw-linters-auth@mimuw-linters.iam.gserviceaccount.com"
+                                       f" --scopes=https://www.googleapis.com/auth/cloud-platform"
+                                       f" --tags=http-server"
                                        f" --create-disk=auto-delete=yes,boot=yes,device-name={machine_name},"
-                                       "image=projects/mimuw-linters/global/images/machine-image-for-all,mode=rw,size=10,"
+                                       f"image=projects/mimuw-linters/global/images/machine-image-for-all,mode=rw,"
+                                       f"size=10,"
                                        "type=projects/mimuw-linters/zones/europe-central2-a/diskTypes/pd-standard"
-                                       " --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring"
-                                       " --reservation-affinity=any", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                       " --no-shielded-secure-boot"
+                                       " --shielded-vtpm"
+                                       " --shielded-integrity-monitoring"
+                                       " --reservation-affinity=any",
+                                       shell=True,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
 
     logger.info(f"Finished creating machine with name {machine_name}."
                 f"\nStdout: {completed_process.stdout}\nStderr: {completed_process.stderr}")
