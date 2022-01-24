@@ -54,6 +54,13 @@ class LinterTests(E2eTests):
         self.assertEqual(1, len(response.errors))
         self.assertEqual("No linter instance available for language Ruby.", response.errors[0])
 
+    def test_special_characters_in_request(self):
+        self.create_linter_instances(1, E2eTests.v_real)
+        request = LinterRequest(language="python", code="e<!@#$%%^&*(>'\" = 5")
+        response = load_balancer_api.validate(self.load_balancer_url, request)
+
+        self.assertEqual("ok", response.result)
+        self.assertEqual(0, len(response.errors))
 
 
 if __name__ == "__main__":
