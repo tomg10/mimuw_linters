@@ -93,5 +93,3 @@ def status(version: str):
         lock.release()
 
     return update_progress
-
-

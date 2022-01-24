@@ -50,6 +50,9 @@ def deploy_linter_version(linter_version, instance_id=None) -> ExistingInstance:
             linter = local_linter_deployer.deploy_linter_instance(linter_version, instance_id)
         elif deploy_backend_type == "gcp":
             linter = gcp_linter_deployer.deploy_linter_instance(linter_version, instance_id)
+        else:
+            logger.exception(f"Unknown deploy_backend_type: {deploy_backend_type}")
+            raise HTTPException(status_code=400, detail=f"Unknown deploy_backend_type: {deploy_backend_type}")
 
         linter.languages = linter_api.get_supported_languages(linter.address)
 
